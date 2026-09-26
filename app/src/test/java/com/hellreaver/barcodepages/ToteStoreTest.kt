@@ -77,6 +77,9 @@ class ToteStoreTest {
         assertEquals("TL0a1b-2", "TL0a1b-2".labelCase())
         assertEquals("TL0a1b-2", "TL0A1B-2".labelCase())
         assertEquals("TL0a1b-2", "tl0a1b-2".labelCase())
+        // More trip labels in the same format.
+        assertEquals("TL0a1b-1", "TL0A1B-1".labelCase())
+        assertEquals("TL4821-1", "tl4821-1".labelCase())
         // Tote codes and anything else are capitals.
         assertEquals("Z13334", "z13334".labelCase())
         assertEquals("Y98760", "y98760".labelCase())

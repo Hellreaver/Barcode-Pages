@@ -27,7 +27,7 @@ class BarcodeTest {
         // Plate widths in device pixels: Pixel 8a (363dp x 2.625), Pixel 8 Pro (400dp x 2.25 and x 3).
         for (width in listOf(953, 900, 1200)) {
             // Tote codes in the label format, plus lowercase and odd lengths.
-            for (label in listOf("Z13334", "Y98760", "Z13027", "Z133340", "Z99999", "TL0a1b-2", "e3397", "2965", "A1", "7", "tote-0042", "x")) {
+            for (label in listOf("Z13334", "Y98760", "Z13027", "Z133340", "Z99999", "TL0a1b-1", "TL0a1b-2", "TL4821-1", "e3397", "2965", "A1", "7", "tote-0042", "x")) {
                 assertEquals(label, decode(label, width))
             }
         }
