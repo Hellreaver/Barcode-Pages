@@ -27,7 +27,7 @@ A work phone under company management may block installs from outside the Play S
 
 ## Builds
 
-Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as release `v1.0.<run number>` with the file `Barcode-Pages-1.0.<run number>.apk`.
+Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as release `v1.0.<run number>` with the file `Barcode-Pages-1.0.<run number>.apk`. The release notes list the subject line of every commit since the previous release.
 
 The signing key is not in this repository. The workflow reads it from two GitHub Actions secrets (Settings > Secrets and variables > Actions):
 
