@@ -66,6 +66,7 @@ fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: B
     val keyboard = LocalSoftwareKeyboardController.current
     var pendingFocus by remember { mutableStateOf<Long?>(null) }
     var confirmClear by remember { mutableStateOf(false) }
+    var focusedId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(Unit) {
         if (autoFocus && store.filled.isEmpty()) pendingFocus = store.totes.last().id
@@ -131,10 +132,18 @@ fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: B
                                 focusManager.clearFocus()
                             }
                         },
+                        onFocus = { isFocused ->
+                            if (isFocused) focusedId = tote.id else if (focusedId == tote.id) focusedId = null
+                        },
                         onBlur = { store.pruneBlanks() },
                         onRemove = { store.remove(tote.id) },
                     )
                 }
+            }
+            // Stays up while the first code is typed, then goes once the list has moved past it.
+            val first = store.filled.firstOrNull()
+            if (first == null || (store.filled.size == 1 && focusedId == first.id)) {
+                ExampleLabel(Modifier.padding(top = 12.dp))
             }
         }
 
@@ -183,6 +192,7 @@ private fun ToteRow(
     requester: FocusRequester,
     onChange: (String) -> Unit,
     onNext: () -> Unit,
+    onFocus: (Boolean) -> Unit,
     onBlur: () -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -248,6 +258,7 @@ private fun ToteRow(
                         .onFocusChanged {
                             if (focused && !it.isFocused) onBlur()
                             focused = it.isFocused
+                            onFocus(it.isFocused)
                         }
                         .semantics { contentDescription = "Tote $number" }
                         .testTag("tote-$number"),

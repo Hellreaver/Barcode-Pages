@@ -41,6 +41,7 @@ abstract class ScreensTestBase(private val device: String) {
         var update by mutableStateOf<UpdateState>(UpdateState.UpToDate)
         compose.setContent { ToteApp(store, update, autoFocus = false) }
         shot("1-empty")
+        compose.onNodeWithTag("example-label").assertExists()
         compose.onNodeWithTag("next").assertIsNotEnabled()
 
         // The Enter key stays "Next" before and after typing. If it flips, Android restarts the
@@ -53,7 +54,12 @@ abstract class ScreensTestBase(private val device: String) {
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.InputText, AnnotatedString("z13334")))
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("Z13334")))
         assertEquals("Z13334", store.filled[0].label)
+        // The example stays while the first code is being typed...
+        compose.onNodeWithTag("example-label").assertExists()
+        shot("1b-first-code")
         compose.onNodeWithTag("tote-2").performTextInput("Z13027")
+        // ...and goes once the list moves on to the second.
+        compose.onNodeWithTag("example-label").assertDoesNotExist()
         compose.onNodeWithTag("tote-3").performTextInput("y98760")
         compose.onNodeWithTag("tote-4").performTextInput("y98760")
         compose.onNodeWithTag("tote-5").assertExists()
