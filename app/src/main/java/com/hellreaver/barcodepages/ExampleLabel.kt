@@ -24,6 +24,10 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -54,7 +58,8 @@ fun ExampleLabel(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .testTag("example-label")
             .clearAndSetSemantics {
-                contentDescription = "Example tote label. Type the code in its bottom-right corner, " +
+                contentDescription = "Example tote label, with the bag and no-bags symbols shown split in one square. " +
+                    "Type the code in its bottom-right corner, " +
                     "like $EXAMPLE_CODE. The long number above the bars is not the tote code."
             },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -146,29 +151,46 @@ private fun labelText(size: Int, weight: FontWeight, color: Color = LabelInk) = 
     textAlign = TextAlign.Center,
 )
 
-/** The black square bag symbol printed at the label's top right. */
+/**
+ * The top-right symbol, split corner to corner so one picture covers both label types: the
+ * upper-left half is the bag symbol (white bag on black), the lower-right half is the no-bags
+ * symbol (black outline bag on white). The dividing line doubles as the no-bags slash.
+ */
 @Composable
 private fun BagIcon() {
     Canvas(Modifier.size(38.dp)) {
-        drawRect(LabelInk)
         val w = size.width
-        val stroke = Stroke(width = w * 0.06f)
-        drawRoundRect(
-            Color.White,
-            topLeft = Offset(w * 0.22f, w * 0.40f),
-            size = Size(w * 0.56f, w * 0.40f),
-            cornerRadius = CornerRadius(w * 0.04f),
-            style = stroke,
-        )
-        drawArc(
-            Color.White,
-            startAngle = 180f,
-            sweepAngle = 180f,
-            useCenter = false,
-            topLeft = Offset(w * 0.36f, w * 0.20f),
-            size = Size(w * 0.28f, w * 0.40f),
-            style = stroke,
-        )
+        val line = w * 0.06f
+        fun DrawScope.bag(color: Color) {
+            drawRoundRect(
+                color,
+                topLeft = Offset(w * 0.22f, w * 0.40f),
+                size = Size(w * 0.56f, w * 0.40f),
+                cornerRadius = CornerRadius(w * 0.04f),
+                style = Stroke(width = line),
+            )
+            drawArc(
+                color,
+                startAngle = 180f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(w * 0.36f, w * 0.20f),
+                size = Size(w * 0.28f, w * 0.40f),
+                style = Stroke(width = line),
+            )
+        }
+        val upperLeft = Path().apply { moveTo(0f, 0f); lineTo(w, 0f); lineTo(0f, w); close() }
+        val lowerRight = Path().apply { moveTo(w, 0f); lineTo(w, w); lineTo(0f, w); close() }
+        clipPath(upperLeft) {
+            drawRect(LabelInk)
+            bag(Color.White)
+        }
+        clipPath(lowerRight) {
+            drawRect(LabelPaper)
+            drawRect(LabelInk, topLeft = Offset(line / 2, line / 2), size = Size(w - line, w - line), style = Stroke(width = line))
+            bag(LabelInk)
+        }
+        clipRect { drawLine(LabelInk, start = Offset(w, 0f), end = Offset(0f, w), strokeWidth = line) }
     }
 }
 
