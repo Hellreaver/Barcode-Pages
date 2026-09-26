@@ -46,6 +46,9 @@ private val LabelOrange = Color(0xFFE8622A)
 /** The code the example points at. Same format as store labels (one letter, five digits). */
 const val EXAMPLE_CODE = "Z13334"
 
+/** Trip label example: TL, a lowercase trip id, a dash and a number, as printed and encoded. */
+const val EXAMPLE_TRIP_CODE = "TL0a1b-2"
+
 /**
  * A drawing of a store tote label with placeholder values, with the one code the app needs
  * highlighted. The bars are decoration and do not form a readable barcode, so nobody can scan
@@ -59,8 +62,9 @@ fun ExampleLabel(modifier: Modifier = Modifier) {
             .testTag("example-label")
             .clearAndSetSemantics {
                 contentDescription = "Example tote label, with the bag and no-bags symbols shown split in one square. " +
-                    "Type the code in its bottom-right corner, " +
-                    "like $EXAMPLE_CODE. The long number above the bars is not the tote code."
+                    "Type the code in its bottom-right corner, like $EXAMPLE_CODE. The long number above " +
+                    "the bars is not the tote code. Example trip label: type the code just above its bars, " +
+                    "like $EXAMPLE_TRIP_CODE."
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -140,6 +144,52 @@ fun ExampleLabel(modifier: Modifier = Modifier) {
             modifier = Modifier.widthIn(max = 340.dp).fillMaxWidth().padding(top = 4.dp),
             style = TextStyle(fontFamily = Lemon.body, fontSize = 13.sp, color = Lemon.muted),
         )
+        TripExampleLabel(Modifier.padding(top = 16.dp))
+        Text(
+            "On a trip label, type the code just above the bars. Its lowercase letters stay lowercase, " +
+                "even if you type capitals.",
+            modifier = Modifier.widthIn(max = 340.dp).fillMaxWidth().padding(top = 6.dp),
+            style = TextStyle(fontFamily = Lemon.body, fontSize = 13.sp, color = Lemon.muted),
+        )
+    }
+}
+
+/** A drawing of a trip label with placeholder values, the code to type highlighted. */
+@Composable
+private fun TripExampleLabel(modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .widthIn(max = 340.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .background(LabelPaper),
+    ) {
+        Box(Modifier.fillMaxWidth().height(7.dp).background(LabelOrange))
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Text("Trip Label", style = labelText(14, FontWeight.Normal))
+            Text("Trip:0a1b", style = labelText(24, FontWeight.Bold))
+            Text(
+                EXAMPLE_TRIP_CODE,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Lemon.accent)
+                    .border(2.dp, Lemon.onAccent, RoundedCornerShape(5.dp))
+                    .padding(horizontal = 7.dp, vertical = 2.dp),
+                style = TextStyle(
+                    fontFamily = Lemon.mono,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Lemon.onAccent,
+                ),
+            )
+            DecorativeBars(Modifier.fillMaxWidth(0.82f).height(40.dp).padding(vertical = 3.dp))
+            Text("5:00 AM", style = labelText(14, FontWeight.Normal))
+        }
+        Box(Modifier.fillMaxWidth().height(7.dp).background(LabelOrange))
     }
 }
 

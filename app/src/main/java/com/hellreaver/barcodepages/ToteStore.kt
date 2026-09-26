@@ -5,16 +5,29 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 /**
- * [text] is exactly what the keyboard typed. [label] is the capitalized version the barcode
- * and the screens use. Keeping the typed text untouched stops the app from rewriting a letter
- * the keyboard is still composing, which made Samsung's keyboard drop the first character.
+ * [text] is exactly what the keyboard typed. [label] is the same code in the case the store
+ * label prints and encodes (see [labelCase]); the barcode and the screens use it. Keeping the
+ * typed text untouched stops the app from rewriting a letter the keyboard is still composing,
+ * which made Samsung's keyboard drop the first character.
  */
 data class Tote(val id: Long, val text: String) {
-    val label: String get() = text.caps()
+    val label: String get() = text.labelCase()
 }
 
-/** Capitalizes letter by letter, so the length never changes (String.uppercase turns "ß" into "SS"). */
-fun String.caps(): String = String(CharArray(length) { this[it].uppercaseChar() })
+/**
+ * Puts a typed code in the case its store label uses, one letter at a time so the length
+ * never changes (String.uppercase turns "ß" into "SS", which would throw off the cursor).
+ *
+ * - Trip labels start with TL and carry a lowercase trip id: "TL0a1b-2". Code 128 keeps case,
+ *   so the id has to stay lowercase even when it was typed in capitals.
+ * - Everything else, tote codes such as "Z13334" included, is capitals.
+ */
+fun String.labelCase(): String {
+    val trip = length >= 2 && this[0].uppercaseChar() == 'T' && this[1].uppercaseChar() == 'L'
+    return String(CharArray(length) { i ->
+        if (trip && i >= 2) this[i].lowercaseChar() else this[i].uppercaseChar()
+    })
+}
 
 enum class Screen { Entry, Barcodes, Share }
 
@@ -63,7 +76,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
         val added = parts.drop(1).map { Tote(nextId++, it) }
 
         val list = totes.toMutableList()
-        if (list[index].label != first.caps()) scanned = scanned - id
+        if (list[index].label != first.labelCase()) scanned = scanned - id
         list[index] = Tote(id, first)
         list.addAll(index + 1, added)
         totes = list

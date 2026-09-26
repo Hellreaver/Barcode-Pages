@@ -6,14 +6,14 @@ Barcode-Pages is an Android app that redraws tote barcodes when a dispense or sc
 
 ## Using it
 
-1. **Enter missing totes.** Type the code from the bottom-right corner of each tote label (`Z13334`, `Y98760`), zeros included. That code is the only thing the label's barcode holds; the long number printed above the bars is not in it. Letters switch to capitals as you type, and pasted codes are capitalized too. Until the first code is entered, a drawing of a tote label under the list highlights where the code sits; its bars are decoration and can't be scanned. A new box opens as soon as you type in the last one. The keyboard's Next key jumps to the next box. Pasting a list separated by spaces, commas or line breaks fills one box per label. A label entered twice gets a yellow `Listed twice` tag.
+1. **Enter missing totes.** Type the code from the bottom-right corner of each tote label (`Z13334`, `Y98760`), zeros included, or the code just above a trip label's bars (`TL0a1b-2`). That code is the only thing the label's barcode holds; the long number printed above the bars is not in it. Letters switch to capitals as you type, except a trip label's trip id, which stays lowercase the way the label encodes it (typing `TL0A1B-2` gives `TL0a1b-2`). Until the first code is entered, drawings of a tote label and a trip label under the list highlight where the code sits; its bars are decoration and can't be scanned. A new box opens as soon as you type in the last one. The keyboard's Next key jumps to the next box. Pasting a list separated by spaces, commas or line breaks fills one box per label. A label entered twice gets a yellow `Listed twice` tag.
 2. **Next.** Works from the first tote on. Each tote gets a card with the label on top and a full-width Code 128 barcode under it. While this screen is open the phone stays awake at full brightness, and the brightness goes back to normal when you leave it.
 3. **Mark scanned.** Optional. Tap it after the scanner takes a tote, and the header counts how many are done. Back or `‹ Totes` returns to the list to fix a label.
 4. **Share & update.** Shows a QR code and a Send link button for the releases page, plus the update check. On every launch the app asks GitHub for the newest release. If it's newer than the installed version, the `Share` button turns into a highlighted `Update` button, and `Update to 1.0.N` downloads the APK in Chrome to install over the app. The check gets a 404 from GitHub while the repository is private; the card then offers the releases page instead.
 
 Nothing is saved between launches. Swiping the app away or reopening it gives a blank list. If Android closes the app in the background while you're in another app, it comes back with the same list.
 
-Code 128 keeps case, so `z13334` and `Z13334` are different barcodes. The app capitalizes every label so the barcode matches the printed tote label. Each bar is drawn on whole screen pixels with a 10-module blank margin on both sides, the minimum the Code 128 spec asks for.
+Code 128 keeps case, so `z13334` and `Z13334` are different barcodes. The app sets the case to match the printed label. Each bar is drawn on whole screen pixels with a 10-module blank margin on both sides, the minimum the Code 128 spec asks for.
 
 ## Installing
 

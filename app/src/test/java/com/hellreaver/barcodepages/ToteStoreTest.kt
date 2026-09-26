@@ -68,7 +68,20 @@ class ToteStoreTest {
         assertEquals("z13334", store.totes[0].text)
         assertEquals("Z13334", store.totes[0].label)
         // One char in, one char out, so the on-screen cursor never drifts.
-        assertEquals(1, "\u00DF".caps().length)
+        assertEquals(1, "\u00DF".labelCase().length)
+    }
+
+    @Test
+    fun tripLabelsKeepTheirLowercaseTripId() {
+        // A trip label's barcode holds its code as printed, lowercase letters included: "TL0a1b-2".
+        assertEquals("TL0a1b-2", "TL0a1b-2".labelCase())
+        assertEquals("TL0a1b-2", "TL0A1B-2".labelCase())
+        assertEquals("TL0a1b-2", "tl0a1b-2".labelCase())
+        // Tote codes and anything else are capitals.
+        assertEquals("Z13334", "z13334".labelCase())
+        assertEquals("Y98760", "y98760".labelCase())
+        assertEquals("T12345", "t12345".labelCase())
+        assertEquals("T", "t".labelCase())
     }
 
     @Test

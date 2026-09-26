@@ -107,8 +107,9 @@ fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: B
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                "Type the code from the bottom-right corner of each tote label, like Z13334, " +
-                    "zeros included. A new box opens as you type, and Next works as soon as there is one.",
+                "Type the code from a tote label's bottom-right corner, like Z13334, or from above a " +
+                    "trip label's barcode, like TL0a1b-2. A new box opens as you type, and Next works " +
+                    "as soon as there is one.",
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                 style = TextStyle(fontFamily = Lemon.body, fontSize = 14.sp, color = Lemon.muted),
             )
@@ -227,7 +228,7 @@ private fun ToteRow(
             Box(Modifier.weight(1f).padding(vertical = 8.dp)) {
                 if (!filled) {
                     Text(
-                        if (isLast && number == 1) "Tote code, e.g. Z13334" else "Next tote",
+                        if (isLast && number == 1) "Tote or trip code, e.g. Z13334" else "Next tote",
                         style = TextStyle(fontFamily = Lemon.body, fontSize = 20.sp, color = Lemon.muted.copy(alpha = 0.7f)),
                     )
                 }
@@ -251,7 +252,7 @@ private fun ToteRow(
                         imeAction = ImeAction.Next,
                     ),
                     keyboardActions = KeyboardActions(onNext = { onNext() }),
-                    visualTransformation = UppercaseTransformation,
+                    visualTransformation = LabelCaseTransformation,
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(requester)
@@ -290,8 +291,11 @@ private fun ToteRow(
 }
 
 
-/** Shows typed text in capitals without changing what the keyboard sent. Same length, so offsets map 1:1. */
-private object UppercaseTransformation : VisualTransformation {
+/**
+ * Shows typed text in the case its label uses (capitals, or a trip label's lowercase id) without
+ * changing what the keyboard sent. Same length, so offsets map 1:1.
+ */
+private object LabelCaseTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString) =
-        TransformedText(AnnotatedString(text.text.caps()), OffsetMapping.Identity)
+        TransformedText(AnnotatedString(text.text.labelCase()), OffsetMapping.Identity)
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Assert.assertEquals
@@ -62,7 +63,10 @@ abstract class ScreensTestBase(private val device: String) {
         compose.onNodeWithTag("example-label").assertDoesNotExist()
         compose.onNodeWithTag("tote-3").performTextInput("y98760")
         compose.onNodeWithTag("tote-4").performTextInput("y98760")
-        compose.onNodeWithTag("tote-5").assertExists()
+        // A trip label typed in capitals keeps its lowercase trip id, as trip labels encode it.
+        compose.onNodeWithTag("tote-5").performTextInput("TL0A1B-2")
+        assertEquals("TL0a1b-2", store.filled[4].label)
+        compose.onNodeWithTag("tote-6").assertExists()
         compose.onNodeWithTag("next").assertIsEnabled()
         shot("2-entered")
 
@@ -70,6 +74,11 @@ abstract class ScreensTestBase(private val device: String) {
         compose.waitForIdle()
         assertEquals(Screen.Barcodes, store.screen)
         shot("3-barcodes")
+        compose.onNodeWithTag("barcodes").performScrollToIndex(4)
+        compose.waitForIdle()
+        shot("3b-trip-barcode")
+        compose.onNodeWithTag("barcodes").performScrollToIndex(0)
+        compose.waitForIdle()
 
         compose.onAllNodesWithText("Mark scanned")[0].performClick()
         compose.waitForIdle()
