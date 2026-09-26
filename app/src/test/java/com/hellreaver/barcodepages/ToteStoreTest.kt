@@ -62,6 +62,26 @@ class ToteStoreTest {
     }
 
     @Test
+    fun typedTextIsKeptAsTypedAndOnlyTheLabelIsCapitalized() {
+        val store = ToteStore()
+        store.edit(store.totes.last().id, "e3397")
+        assertEquals("e3397", store.totes[0].text)
+        assertEquals("E3397", store.totes[0].label)
+        // One char in, one char out, so the on-screen cursor never drifts.
+        assertEquals(1, "\u00DF".caps().length)
+    }
+
+    @Test
+    fun changingOnlyTheCaseKeepsTheScannedMark() {
+        val store = ToteStore()
+        store.edit(store.totes.last().id, "e3397")
+        val id = store.totes[0].id
+        store.toggleScanned(id)
+        store.edit(id, "E3397")
+        assertTrue(id in store.scanned)
+    }
+
+    @Test
     fun editingALabelClearsItsScannedMark() {
         val store = ToteStore()
         store.edit(store.totes.last().id, "e3397")

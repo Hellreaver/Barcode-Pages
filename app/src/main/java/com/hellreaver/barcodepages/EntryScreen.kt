@@ -50,6 +50,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -218,7 +222,7 @@ private fun ToteRow(
                     )
                 }
                 BasicTextField(
-                    value = tote.label,
+                    value = tote.text,
                     onValueChange = onChange,
                     singleLine = true,
                     cursorBrush = SolidColor(Lemon.accent),
@@ -232,9 +236,12 @@ private fun ToteRow(
                         capitalization = KeyboardCapitalization.Characters,
                         autoCorrectEnabled = false,
                         keyboardType = KeyboardType.Ascii,
-                        imeAction = if (isLast && !filled) ImeAction.Done else ImeAction.Next,
+                        // Fixed for the life of the field. Switching it while typing restarts the
+                        // keyboard connection, and Samsung's keyboard loses a letter when that happens.
+                        imeAction = ImeAction.Next,
                     ),
-                    keyboardActions = KeyboardActions(onNext = { onNext() }, onDone = { onNext() }),
+                    keyboardActions = KeyboardActions(onNext = { onNext() }),
+                    visualTransformation = UppercaseTransformation,
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(requester)
@@ -271,3 +278,9 @@ private fun ToteRow(
     }
 }
 
+
+/** Shows typed text in capitals without changing what the keyboard sent. Same length, so offsets map 1:1. */
+private object UppercaseTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString) =
+        TransformedText(AnnotatedString(text.text.caps()), OffsetMapping.Identity)
+}

@@ -3,7 +3,13 @@ package com.hellreaver.barcodepages
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.test.hasImeAction
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -37,7 +43,16 @@ abstract class ScreensTestBase(private val device: String) {
         shot("1-empty")
         compose.onNodeWithTag("next").assertIsNotEnabled()
 
+        // The Enter key stays "Next" before and after typing. If it flips, Android restarts the
+        // keyboard connection and Samsung's keyboard drops the first letter.
+        compose.onNodeWithTag("tote-1").assert(hasImeAction(ImeAction.Next))
         compose.onNodeWithTag("tote-1").performTextInput("e3397")
+        compose.onNodeWithTag("tote-1").assert(hasImeAction(ImeAction.Next))
+        // The field holds exactly what the keyboard sent; only the display is capitalized.
+        compose.onNodeWithTag("tote-1")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.InputText, AnnotatedString("e3397")))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("E3397")))
+        assertEquals("E3397", store.filled[0].label)
         compose.onNodeWithTag("tote-2").performTextInput("2965")
         compose.onNodeWithTag("tote-3").performTextInput("e22560")
         compose.onNodeWithTag("tote-4").performTextInput("e22560")

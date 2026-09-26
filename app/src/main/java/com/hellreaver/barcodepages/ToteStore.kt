@@ -4,7 +4,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-data class Tote(val id: Long, val label: String)
+/**
+ * [text] is exactly what the keyboard typed. [label] is the capitalized version the barcode
+ * and the screens use. Keeping the typed text untouched stops the app from rewriting a letter
+ * the keyboard is still composing, which made Samsung's keyboard drop the first character.
+ */
+data class Tote(val id: Long, val text: String) {
+    val label: String get() = text.caps()
+}
+
+/** Capitalizes letter by letter, so the length never changes (String.uppercase turns "ß" into "SS"). */
+fun String.caps(): String = String(CharArray(length) { this[it].uppercaseChar() })
 
 enum class Screen { Entry, Barcodes, Share }
 
@@ -39,12 +49,12 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
 
     /**
      * Sets a row's text. Spaces, commas, semicolons and line breaks split the text into
-     * several totes, so a pasted list fills several rows at once. Letters are uppercased,
-     * because Code 128 keeps case and tote labels are printed in capitals.
+     * several totes, so a pasted list fills several rows at once. The typed text is stored
+     * as is; [Tote.label] capitalizes it, because Code 128 keeps case and tote labels are
+     * printed in capitals.
      * Returns the id of the row that should take focus next, or null to leave focus alone.
      */
-    fun edit(id: Long, typed: String): Long? {
-        val raw = typed.uppercase()
+    fun edit(id: Long, raw: String): Long? {
         val index = totes.indexOfFirst { it.id == id }
         if (index < 0) return null
         val hasSeparator = SEPARATORS.containsMatchIn(raw)
@@ -53,7 +63,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
         val added = parts.drop(1).map { Tote(nextId++, it) }
 
         val list = totes.toMutableList()
-        if (list[index].label != first) scanned = scanned - id
+        if (list[index].label != first.caps()) scanned = scanned - id
         list[index] = Tote(id, first)
         list.addAll(index + 1, added)
         totes = list
@@ -109,7 +119,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
     fun isDuplicate(tote: Tote): Boolean =
         tote.label.isNotBlank() && totes.count { it.label == tote.label } > 1
 
-    fun snapshot() = Snapshot(totes.map { it.label }, totes.map { it.id in scanned }, screen)
+    fun snapshot() = Snapshot(totes.map { it.text }, totes.map { it.id in scanned }, screen)
 
     private fun ensureTrailingBlank() {
         if (totes.lastOrNull()?.label?.isBlank() != true) {
