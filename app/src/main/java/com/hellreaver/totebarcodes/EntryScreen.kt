@@ -84,21 +84,7 @@ fun EntryScreen(store: ToteStore, autoFocus: Boolean = true) {
         TopBar(
             eyebrow = "Missed dispense recovery",
             title = "Enter missing totes",
-            trailing = {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        "$count",
-                        style = TextStyle(
-                            fontFamily = Lemon.mono,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 30.sp,
-                            lineHeight = 32.sp,
-                            color = Lemon.accentInk,
-                        ),
-                    )
-                    Text(if (count == 1) "tote" else "totes", style = TextStyle(fontSize = 13.sp, color = Lemon.muted))
-                }
-            },
+            trailing = { HeaderChip("Share", onClick = { store.show(Screen.Share) }) },
         )
 
         Column(
@@ -111,7 +97,7 @@ fun EntryScreen(store: ToteStore, autoFocus: Boolean = true) {
         ) {
             Text(
                 "Type each tote label exactly as printed. A new box opens as soon as you type, " +
-                    "and the list saves on every keystroke.",
+                    "and Next works as soon as there is one.",
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                 style = TextStyle(fontFamily = Lemon.body, fontSize = 14.sp, color = Lemon.muted),
             )

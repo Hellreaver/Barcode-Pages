@@ -170,9 +170,9 @@ fun BottomBar(modifier: Modifier = Modifier, content: @Composable RowScope.() ->
 }
 
 @Composable
-fun BackChip(onClick: () -> Unit) {
+fun HeaderChip(text: String, onClick: () -> Unit) {
     Text(
-        "‹ Totes",
+        text,
         modifier = Modifier
             .clip(ControlShape)
             .background(Lemon.card)

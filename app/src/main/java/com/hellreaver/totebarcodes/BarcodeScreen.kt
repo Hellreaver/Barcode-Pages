@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 fun BarcodeScreen(store: ToteStore) {
     val totes = store.filled
     val done = totes.count { it.id in store.scanned }
-    BackHandler { store.showEntry() }
+    BackHandler { store.show(Screen.Entry) }
     ScreenAtFullBrightness()
 
     Column(Modifier.fillMaxSize().background(Lemon.bg)) {
@@ -52,7 +52,7 @@ fun BarcodeScreen(store: ToteStore) {
             eyebrow = "$done of ${totes.size} marked scanned",
             title = if (totes.size == 1) "1 tote" else "${totes.size} totes",
             progress = if (totes.isEmpty()) 0f else done.toFloat() / totes.size,
-            leading = { BackChip(onClick = store::showEntry) },
+            leading = { HeaderChip("\u2039 Totes", onClick = { store.show(Screen.Entry) }) },
         )
         val nav = WindowInsets.navigationBars.asPaddingValues()
         LazyColumn(

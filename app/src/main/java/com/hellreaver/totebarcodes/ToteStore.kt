@@ -1,22 +1,21 @@
 package com.hellreaver.totebarcodes
 
-import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import org.json.JSONArray
-import org.json.JSONObject
 
 data class Tote(val id: Long, val label: String)
 
-enum class Screen { Entry, Barcodes }
+enum class Screen { Entry, Barcodes, Share }
+
+/** What survives Android killing the app in the background. A fresh launch starts empty. */
+data class Snapshot(val labels: List<String>, val scanned: List<Boolean>, val screen: Screen)
 
 /**
- * The tote list, which totes are marked scanned, and which screen is open. Every change is
- * written to SharedPreferences, so a crash, a reboot or a swipe-away brings back the same list.
+ * The tote list, which totes are marked scanned, and which screen is open.
  * The list always ends with one blank row; typing into it adds the next blank row.
  */
-class ToteStore(private val prefs: SharedPreferences) {
+class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> Unit = {}) {
     var totes by mutableStateOf(listOf<Tote>())
         private set
     var scanned by mutableStateOf(setOf<Long>())
@@ -27,7 +26,11 @@ class ToteStore(private val prefs: SharedPreferences) {
     private var nextId = 1L
 
     init {
-        load()
+        if (restore != null) {
+            totes = restore.labels.map { Tote(nextId++, it) }
+            scanned = totes.filterIndexed { i, _ -> restore.scanned.getOrElse(i) { false } }.map { it.id }.toSet()
+            screen = if (restore.screen == Screen.Barcodes && filled.isEmpty()) Screen.Entry else restore.screen
+        }
         ensureTrailingBlank()
     }
 
@@ -53,7 +56,7 @@ class ToteStore(private val prefs: SharedPreferences) {
         list.addAll(index + 1, added)
         totes = list
         ensureTrailingBlank()
-        save()
+        changed()
 
         if (!hasSeparator) return null
         val lastTouched = added.lastOrNull()?.id ?: id
@@ -64,16 +67,16 @@ class ToteStore(private val prefs: SharedPreferences) {
         totes = totes.filterNot { it.id == id }
         scanned = scanned - id
         ensureTrailingBlank()
-        save()
+        changed()
     }
 
-    /** Drops blank rows other than the last one and [keep]. */
-    fun pruneBlanks(keep: Long? = null) {
+    /** Drops blank rows other than the last one. */
+    fun pruneBlanks() {
         val last = totes.lastOrNull()?.id
-        val pruned = totes.filter { it.label.isNotBlank() || it.id == last || it.id == keep }
+        val pruned = totes.filter { it.label.isNotBlank() || it.id == last }
         if (pruned.size != totes.size) {
             totes = pruned
-            save()
+            changed()
         }
     }
 
@@ -82,28 +85,29 @@ class ToteStore(private val prefs: SharedPreferences) {
         scanned = emptySet()
         screen = Screen.Entry
         ensureTrailingBlank()
-        save()
+        changed()
     }
 
     fun toggleScanned(id: Long) {
         scanned = if (id in scanned) scanned - id else scanned + id
-        save()
+        changed()
     }
 
     fun showBarcodes() {
         if (filled.isEmpty()) return
         pruneBlanks()
-        screen = Screen.Barcodes
-        save()
+        show(Screen.Barcodes)
     }
 
-    fun showEntry() {
-        screen = Screen.Entry
-        save()
+    fun show(target: Screen) {
+        screen = target
+        changed()
     }
 
     fun isDuplicate(tote: Tote): Boolean =
         tote.label.isNotBlank() && totes.count { it.label == tote.label } > 1
+
+    fun snapshot() = Snapshot(totes.map { it.label }, totes.map { it.id in scanned }, screen)
 
     private fun ensureTrailingBlank() {
         if (totes.lastOrNull()?.label?.isBlank() != true) {
@@ -111,39 +115,9 @@ class ToteStore(private val prefs: SharedPreferences) {
         }
     }
 
-    private fun save() {
-        val json = JSONObject()
-            .put("nextId", nextId)
-            .put("screen", screen.name)
-            .put("totes", JSONArray().apply {
-                totes.forEach { put(JSONObject().put("id", it.id).put("label", it.label)) }
-            })
-            .put("scanned", JSONArray().apply { scanned.forEach { put(it) } })
-        prefs.edit().putString(KEY, json.toString()).apply()
-    }
-
-    private fun load() {
-        val raw = prefs.getString(KEY, null) ?: return
-        runCatching {
-            val json = JSONObject(raw)
-            val list = json.getJSONArray("totes")
-            totes = (0 until list.length()).map {
-                val o = list.getJSONObject(it)
-                Tote(o.getLong("id"), o.getString("label"))
-            }
-            val ids = json.getJSONArray("scanned")
-            scanned = (0 until ids.length()).map { ids.getLong(it) }.toSet()
-            nextId = maxOf(json.getLong("nextId"), (totes.maxOfOrNull { it.id } ?: 0L) + 1)
-            screen = if (json.optString("screen") == Screen.Barcodes.name && filled.isNotEmpty()) {
-                Screen.Barcodes
-            } else {
-                Screen.Entry
-            }
-        }
-    }
+    private fun changed() = onChange(snapshot())
 
     private companion object {
-        const val KEY = "state"
         val SEPARATORS = Regex("[\\s,;]+")
     }
 }
