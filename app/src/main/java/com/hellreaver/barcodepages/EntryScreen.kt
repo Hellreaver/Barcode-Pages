@@ -108,8 +108,8 @@ fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: B
         ) {
             Text(
                 "Type the code from a tote label's bottom-right corner, like Z13334, or from above a " +
-                    "trip label's barcode, like TL0a1b-2. A new box opens as you type, and Next works " +
-                    "as soon as there is one.",
+                    "trip label's barcode, like TL0a1b-2, or from the Dispense Order list. A new box " +
+                    "opens as you type, and Next works as soon as there is one.",
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                 style = TextStyle(fontFamily = Lemon.body, fontSize = 14.sp, color = Lemon.muted),
             )
