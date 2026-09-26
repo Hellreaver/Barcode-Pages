@@ -17,7 +17,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -59,13 +65,7 @@ fun ExampleLabel(modifier: Modifier = Modifier) {
     Column(
         modifier
             .fillMaxWidth()
-            .testTag("example-label")
-            .clearAndSetSemantics {
-                contentDescription = "Example tote label, with the bag and no-bags symbols shown split in one square. " +
-                    "Type the code in its bottom-right corner, like $EXAMPLE_CODE. The long number above " +
-                    "the bars is not the tote code. Example trip label: type the code just above its bars, " +
-                    "like $EXAMPLE_TRIP_CODE."
-            },
+            .testTag("example-label"),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -78,7 +78,12 @@ fun ExampleLabel(modifier: Modifier = Modifier) {
                 .widthIn(max = 340.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(6.dp))
-                .background(LabelPaper),
+                .background(LabelPaper)
+                .clearAndSetSemantics {
+                    contentDescription = "Example tote label, with the bag and no-bags symbols shown split in " +
+                        "one square. Type the code in its bottom-right corner, like $EXAMPLE_CODE. The long " +
+                        "number above the bars is not the tote code."
+                },
         ) {
             Box(Modifier.fillMaxWidth().height(7.dp).background(LabelOrange))
             Column(
@@ -144,13 +149,39 @@ fun ExampleLabel(modifier: Modifier = Modifier) {
             modifier = Modifier.widthIn(max = 340.dp).fillMaxWidth().padding(top = 4.dp),
             style = TextStyle(fontFamily = Lemon.body, fontSize = 13.sp, color = Lemon.muted),
         )
-        TripExampleLabel(Modifier.padding(top = 16.dp))
-        Text(
-            "On a trip label, type the code just above the bars. Its lowercase letters stay lowercase, " +
-                "even if you type capitals.",
-            modifier = Modifier.widthIn(max = 340.dp).fillMaxWidth().padding(top = 6.dp),
-            style = TextStyle(fontFamily = Lemon.body, fontSize = 13.sp, color = Lemon.muted),
-        )
+        // Trip labels are the less common case, so their example starts folded away.
+        var showTrip by rememberSaveable { mutableStateOf(false) }
+        Row(
+            Modifier
+                .padding(top = 14.dp)
+                .widthIn(max = 340.dp)
+                .fillMaxWidth()
+                .clip(ControlShape)
+                .border(1.dp, Lemon.line, ControlShape)
+                .clickable(role = Role.Button, onClickLabel = if (showTrip) "Hide" else "Show") { showTrip = !showTrip }
+                .padding(horizontal = 12.dp, vertical = 12.dp)
+                .testTag("trip-toggle"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Trip label example",
+                modifier = Modifier.weight(1f),
+                style = TextStyle(fontFamily = Lemon.display, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = Lemon.accentInk),
+            )
+            Text(
+                if (showTrip) "Hide \u25B4" else "Show \u25BE",
+                style = TextStyle(fontFamily = Lemon.display, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = Lemon.accent),
+            )
+        }
+        if (showTrip) {
+            TripExampleLabel(Modifier.padding(top = 10.dp))
+            Text(
+                "On a trip label, type the code just above the bars. Its lowercase letters stay lowercase, " +
+                    "even if you type capitals.",
+                modifier = Modifier.widthIn(max = 340.dp).fillMaxWidth().padding(top = 6.dp),
+                style = TextStyle(fontFamily = Lemon.body, fontSize = 13.sp, color = Lemon.muted),
+            )
+        }
     }
 }
 
@@ -162,7 +193,11 @@ private fun TripExampleLabel(modifier: Modifier = Modifier) {
             .widthIn(max = 340.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(6.dp))
-            .background(LabelPaper),
+            .background(LabelPaper)
+            .testTag("trip-example")
+            .clearAndSetSemantics {
+                contentDescription = "Example trip label. Type the code just above its bars, like $EXAMPLE_TRIP_CODE."
+            },
     ) {
         Box(Modifier.fillMaxWidth().height(7.dp).background(LabelOrange))
         Column(

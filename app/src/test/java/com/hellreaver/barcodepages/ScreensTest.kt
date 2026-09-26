@@ -43,6 +43,15 @@ abstract class ScreensTestBase(private val device: String) {
         compose.setContent { ToteApp(store, update, autoFocus = false) }
         shot("1-empty")
         compose.onNodeWithTag("example-label").assertExists()
+        // The trip label example starts folded and opens on tap.
+        compose.onNodeWithTag("trip-example").assertDoesNotExist()
+        compose.onNodeWithTag("trip-toggle").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithTag("trip-example").assertExists()
+        shot("1a-trip-open")
+        compose.onNodeWithTag("trip-toggle").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithTag("trip-example").assertDoesNotExist()
         compose.onNodeWithTag("next").assertIsNotEnabled()
 
         // The Enter key stays "Next" before and after typing. If it flips, Android restarts the
