@@ -1,4 +1,4 @@
-package com.hellreaver.totebarcodes
+package com.hellreaver.barcodepages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

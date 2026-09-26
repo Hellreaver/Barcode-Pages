@@ -1,4 +1,4 @@
-package com.hellreaver.totebarcodes
+package com.hellreaver.barcodepages
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

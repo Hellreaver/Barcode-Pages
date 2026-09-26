@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "ToteBarcodes"
+rootProject.name = "Barcode-Pages"
 include(":app")

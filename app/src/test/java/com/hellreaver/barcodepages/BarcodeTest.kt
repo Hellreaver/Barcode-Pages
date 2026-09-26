@@ -1,4 +1,4 @@
-package com.hellreaver.totebarcodes
+package com.hellreaver.barcodepages
 
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap

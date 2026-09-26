@@ -21,15 +21,32 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Load signing key
+        id: key
+        env:
+          SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE" ]; then
+            echo "::warning::SIGNING_KEYSTORE secret is not set, so this run builds and tests but publishes no release."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            printf '%s' "$SIGNING_KEYSTORE" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/release.p12"
+            echo "SIGNING_KEYSTORE_FILE=$RUNNER_TEMP/release.p12" >> "$GITHUB_ENV"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Test and build
+        env:
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew testDebugUnitTest assembleRelease
 
       - name: Publish release
+        if: steps.key.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/release/app-release.apk ToteBarcodes.apk
-          gh release create "v1.0.${{ github.run_number }}" ToteBarcodes.apk \
+          cp app/build/outputs/apk/release/app-release.apk Barcode-Pages.apk
+          gh release create "v1.0.${{ github.run_number }}" Barcode-Pages.apk \
             --target "${{ github.sha }}" \
-            --title "Tote Barcodes 1.0.${{ github.run_number }}" \
-            --notes "Download ToteBarcodes.apk below on the phone, open it, and allow the install. Each build installs over the last one."
+            --title "Barcode-Pages 1.0.${{ github.run_number }}" \
+            --notes "Download Barcode-Pages.apk below on the phone, open it, and allow the install. Each build installs over the last one."

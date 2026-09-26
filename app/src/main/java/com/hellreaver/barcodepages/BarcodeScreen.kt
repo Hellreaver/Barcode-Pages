@@ -1,4 +1,4 @@
-package com.hellreaver.totebarcodes
+package com.hellreaver.barcodepages
 
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler

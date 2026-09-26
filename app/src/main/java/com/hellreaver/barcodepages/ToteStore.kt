@@ -1,4 +1,4 @@
-package com.hellreaver.totebarcodes
+package com.hellreaver.barcodepages
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

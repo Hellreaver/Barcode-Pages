@@ -1,4 +1,4 @@
-package com.hellreaver.totebarcodes
+package com.hellreaver.barcodepages
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
@@ -38,7 +38,7 @@ import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
-/** Newest GitHub release. GitHub Actions attaches ToteBarcodes.apk to each one. */
+/** Newest GitHub release. GitHub Actions attaches Barcode-Pages.apk to each one. */
 const val RELEASES_URL = "https://github.com/Hellreaver/Barcode-Pages/releases/latest"
 
 @Composable
@@ -48,7 +48,7 @@ fun ShareScreen(store: ToteStore) {
 
     Column(Modifier.fillMaxSize().background(Lemon.bg)) {
         TopBar(
-            eyebrow = "Tote Barcodes v${BuildConfig.VERSION_NAME}",
+            eyebrow = "Barcode-Pages v${BuildConfig.VERSION_NAME}",
             title = "Share this app",
             leading = { HeaderChip("‹ Totes", onClick = { store.show(Screen.Entry) }) },
         )
@@ -90,13 +90,13 @@ fun ShareScreen(store: ToteStore) {
                 onClick = {
                     val send = Intent(Intent.ACTION_SEND)
                         .setType("text/plain")
-                        .putExtra(Intent.EXTRA_SUBJECT, "Tote Barcodes app")
+                        .putExtra(Intent.EXTRA_SUBJECT, "Barcode-Pages app")
                         .putExtra(Intent.EXTRA_TEXT, RELEASES_URL)
                     context.startActivity(Intent.createChooser(send, "Send link"))
                 },
             )
             Text(
-                "On the release page, tap ToteBarcodes.apk under Assets, open the download, " +
+                "On the release page, tap Barcode-Pages.apk under Assets, open the download, " +
                     "and allow the install when Android asks. Play Protect warns about any app " +
                     "that isn't from the Play Store; tap Install anyway.",
                 modifier = Modifier

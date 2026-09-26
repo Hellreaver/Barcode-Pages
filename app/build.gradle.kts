@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.hellreaver.totebarcodes"
+    namespace = "com.hellreaver.barcodepages"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.hellreaver.totebarcodes"
+        applicationId = "com.hellreaver.barcodepages"
         // Pixel 8a ships with Android 14, Pixel 8 Pro with Android 14; both update past 16.
         minSdk = 29
         targetSdk = 35
@@ -20,23 +20,24 @@ android {
     }
 
     signingConfigs {
-        // Checked-in key so a phone can install every build over the previous one,
-        // whether it was built locally or by GitHub Actions. Sideload-only app.
-        create("shared") {
-            storeFile = rootProject.file("signing/tote-barcodes.jks")
-            storePassword = "totebarcodes"
-            keyAlias = "tote-barcodes"
-            keyPassword = "totebarcodes"
+        // The release key lives in GitHub Actions secrets, never in this repo.
+        // The workflow decodes it to a temp file and points SIGNING_KEYSTORE_FILE at it.
+        val keystore = System.getenv("SIGNING_KEYSTORE_FILE")
+        if (keystore != null) {
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("SIGNING_PASSWORD")
+                keyAlias = "barcode-pages"
+                keyPassword = System.getenv("SIGNING_PASSWORD")
+            }
         }
     }
 
     buildTypes {
-        getByName("debug") {
-            signingConfig = signingConfigs.getByName("shared")
-        }
         getByName("release") {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("shared")
+            // A local build without the key falls back to this machine's debug key.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

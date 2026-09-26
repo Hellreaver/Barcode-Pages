@@ -1,8 +1,8 @@
 # Barcode-Pages
 
-Tote Barcodes, an Android app that redraws tote barcodes when a dispense or scan-out fails after the customer has left. Type the tote labels in, tap Next, and scan the barcodes straight off the phone screen.
+Barcode-Pages is an Android app that redraws tote barcodes when a dispense or scan-out fails after the customer has left. Type the tote labels in, tap Next, and scan the barcodes straight off the phone screen.
 
-**Download: [latest release](https://github.com/Hellreaver/Barcode-Pages/releases/latest)**, then tap `ToteBarcodes.apk` under Assets.
+**Download: [latest release](https://github.com/Hellreaver/Barcode-Pages/releases/latest)**, then tap `Barcode-Pages.apk` under Assets.
 
 ## Using it
 
@@ -19,7 +19,7 @@ Code 128 keeps upper and lower case, so `e3397` scans as `e3397`, not `E3397`. E
 
 Built for the Pixel 8a and Pixel 8 Pro (Android 14 and later). It runs on any phone with Android 10 or newer.
 
-1. On the phone, open the latest release and download `ToteBarcodes.apk`.
+1. On the phone, open the latest release and download `Barcode-Pages.apk`.
 2. Open the download. Android asks you to allow installs from the browser or Files app the first time.
 3. Play Protect warns about apps that don't come from the Play Store. Tap Install anyway.
 
@@ -27,15 +27,22 @@ A work phone under company management may block installs from outside the Play S
 
 ## Builds
 
-Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as release `v1.0.<run number>`. Each build is signed with `signing/tote-barcodes.jks`, so a new version installs over the old one. That key is committed on purpose. Move it into a GitHub Actions secret before making this repository public.
+Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as release `v1.0.<run number>`.
 
-Local build: `./gradlew assembleRelease` (needs JDK 17+ and the Android SDK).
+The signing key is not in this repository. The workflow reads it from two GitHub Actions secrets (Settings > Secrets and variables > Actions):
+
+- `SIGNING_KEYSTORE`: the PKCS12 keystore, base64-encoded, key alias `barcode-pages`.
+- `SIGNING_PASSWORD`: its password.
+
+Without them the workflow still builds and tests but publishes no release. Every release must be signed with the same key or Android refuses to install it over the previous version, so keep an offline copy of the keystore.
+
+Local build: `./gradlew assembleRelease` (needs JDK 17+ and the Android SDK). Without the key it signs with your machine's debug key; set `SIGNING_KEYSTORE_FILE` and `SIGNING_PASSWORD` to sign with the release key.
 
 Tests: `./gradlew testDebugUnitTest`. They decode rendered barcodes with ZXing, check the tote list behavior, and render every screen at Pixel 8a (411 x 914 dp) and Pixel 8 Pro (448 x 997 dp) sizes. Add `-Proborazzi.test.record=true` to save those screens as PNGs under `app/build/screenshots/`.
 
 ## Source
 
-Kotlin with Jetpack Compose, one activity, under `app/src/main/java/com/hellreaver/totebarcodes/`:
+Kotlin with Jetpack Compose, one activity, under `app/src/main/java/com/hellreaver/barcodepages/`:
 
 - `EntryScreen.kt`: the tote list.
 - `BarcodeScreen.kt`: barcode cards and the brightness hold.
