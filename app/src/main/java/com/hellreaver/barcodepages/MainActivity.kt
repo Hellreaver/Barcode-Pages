@@ -8,8 +8,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 /**
  * Holds the list in memory. SavedStateHandle brings it back if Android kills the app while
@@ -31,6 +36,18 @@ class ToteViewModel(handle: SavedStateHandle) : ViewModel() {
         },
     )
 
+    var update by mutableStateOf<UpdateState>(UpdateState.Checking)
+        private set
+
+    init {
+        checkForUpdate()
+    }
+
+    fun checkForUpdate() {
+        update = UpdateState.Checking
+        viewModelScope.launch { update = Updates.check(BuildConfig.VERSION_CODE) }
+    }
+
     private companion object {
         const val LABELS = "labels"
         const val SCANNED = "scanned"
@@ -47,17 +64,22 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
-        setContent { ToteApp(model.store) }
+        setContent { ToteApp(model.store, model.update, model::checkForUpdate) }
     }
 }
 
 @Composable
-fun ToteApp(store: ToteStore, autoFocus: Boolean = true) {
+fun ToteApp(
+    store: ToteStore,
+    update: UpdateState = UpdateState.UpToDate,
+    onCheckUpdate: () -> Unit = {},
+    autoFocus: Boolean = true,
+) {
     LemonTheme {
         when (store.screen) {
-            Screen.Entry -> EntryScreen(store, autoFocus)
+            Screen.Entry -> EntryScreen(store, update is UpdateState.Available, autoFocus)
             Screen.Barcodes -> BarcodeScreen(store)
-            Screen.Share -> ShareScreen(store)
+            Screen.Share -> ShareScreen(store, update, onCheckUpdate)
         }
     }
 }

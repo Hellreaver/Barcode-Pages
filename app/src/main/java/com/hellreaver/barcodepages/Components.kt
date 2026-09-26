@@ -170,20 +170,20 @@ fun BottomBar(modifier: Modifier = Modifier, content: @Composable RowScope.() ->
 }
 
 @Composable
-fun HeaderChip(text: String, onClick: () -> Unit) {
+fun HeaderChip(text: String, highlighted: Boolean = false, onClick: () -> Unit) {
     Text(
         text,
         modifier = Modifier
             .clip(ControlShape)
-            .background(Lemon.card)
-            .border(1.dp, Lemon.line, ControlShape)
+            .background(if (highlighted) Lemon.accent else Lemon.card)
+            .border(1.dp, if (highlighted) Lemon.accent else Lemon.line, ControlShape)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         style = TextStyle(
             fontFamily = Lemon.display,
             fontWeight = FontWeight.Bold,
             fontSize = 17.sp,
-            color = Lemon.accentInk,
+            color = if (highlighted) Lemon.onAccent else Lemon.accentInk,
         ),
     )
 }

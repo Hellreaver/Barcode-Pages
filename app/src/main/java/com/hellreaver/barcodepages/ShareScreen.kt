@@ -1,11 +1,16 @@
 package com.hellreaver.barcodepages
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,14 +47,14 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 const val RELEASES_URL = "https://github.com/Hellreaver/Barcode-Pages/releases/latest"
 
 @Composable
-fun ShareScreen(store: ToteStore) {
+fun ShareScreen(store: ToteStore, update: UpdateState = UpdateState.UpToDate, onCheckUpdate: () -> Unit = {}) {
     val context = LocalContext.current
     BackHandler { store.show(Screen.Entry) }
 
     Column(Modifier.fillMaxSize().background(Lemon.bg)) {
         TopBar(
             eyebrow = "Barcode-Pages v${BuildConfig.VERSION_NAME}",
-            title = "Share this app",
+            title = "Share & update",
             leading = { HeaderChip("‹ Totes", onClick = { store.show(Screen.Entry) }) },
         )
         Column(
@@ -62,6 +67,7 @@ fun ShareScreen(store: ToteStore) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            UpdateCard(update, onCheckUpdate, open = { context.openInBrowser(it) })
             Text(
                 "Point another phone's camera at this code to open the download page.",
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -138,6 +144,60 @@ fun QrCode(text: String, modifier: Modifier = Modifier) {
                         topLeft = Offset((left + x * cell).toFloat(), (top + y * cell).toFloat()),
                         size = Size(cell.toFloat(), cell.toFloat()),
                     )
+                }
+            }
+        }
+    }
+}
+
+private fun Context.openInBrowser(url: String) {
+    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+}
+
+/** Installed version against the newest GitHub release, like delivery-tracker's update panel. */
+@Composable
+private fun UpdateCard(update: UpdateState, onCheck: () -> Unit, open: (String) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .stripeCard(if (update is UpdateState.Available) Lemon.accent else Lemon.line)
+            .padding(start = 17.dp, end = 12.dp, top = 12.dp, bottom = 12.dp)
+            .testTag("update"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("UPDATES", style = EyebrowStyle)
+            Spacer(Modifier.weight(1f))
+            Text(
+                "Installed ${BuildConfig.VERSION_NAME}",
+                style = TextStyle(fontFamily = Lemon.mono, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = Lemon.muted),
+            )
+        }
+        val body = TextStyle(fontFamily = Lemon.body, fontSize = 15.sp, color = Lemon.text)
+        when (update) {
+            UpdateState.Checking -> Text("Checking GitHub for a newer version\u2026", style = body)
+            UpdateState.UpToDate -> {
+                Text("Up to date.", style = body)
+                LemonButton("Check again", onClick = onCheck, modifier = Modifier.fillMaxWidth())
+            }
+            is UpdateState.Available -> {
+                LemonButton(
+                    "Update to ${update.release.versionName}",
+                    kind = ButtonKind.Primary,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { open(update.release.apkUrl ?: update.release.pageUrl) },
+                )
+                Text(
+                    "Downloads in Chrome. Open the download and install it over this app.",
+                    style = TextStyle(fontFamily = Lemon.body, fontSize = 13.sp, color = Lemon.muted),
+                )
+            }
+            is UpdateState.Failed -> {
+                Text(update.reason, style = body)
+                Row {
+                    LemonButton("Releases page", onClick = { open(RELEASES_URL) }, modifier = Modifier.weight(1f))
+                    Spacer(Modifier.width(10.dp))
+                    LemonButton("Check again", onClick = onCheck, modifier = Modifier.weight(1f))
                 }
             }
         }

@@ -12,19 +12,19 @@ class ToteStoreTest {
     fun typingInTheLastRowAddsAnotherBlankRow() {
         val store = ToteStore()
         assertEquals(listOf(""), store.labels())
-        store.edit(store.totes.last().id, "e")
-        assertEquals(listOf("e", ""), store.labels())
-        store.edit(store.totes[0].id, "e3397")
-        assertEquals(listOf("e3397", ""), store.labels())
+        store.edit(store.totes.last().id, "E")
+        assertEquals(listOf("E", ""), store.labels())
+        store.edit(store.totes[0].id, "E3397")
+        assertEquals(listOf("E3397", ""), store.labels())
         store.edit(store.totes.last().id, "2965")
-        assertEquals(listOf("e3397", "2965", ""), store.labels())
+        assertEquals(listOf("E3397", "2965", ""), store.labels())
     }
 
     @Test
     fun pastedListSplitsIntoRowsAndFocusMovesPastIt() {
         val store = ToteStore()
-        val focus = store.edit(store.totes.last().id, "e3397 2965,e22560\n")
-        assertEquals(listOf("e3397", "2965", "e22560", ""), store.labels())
+        val focus = store.edit(store.totes.last().id, "E3397 2965,E22560\n")
+        assertEquals(listOf("E3397", "2965", "E22560", ""), store.labels())
         assertEquals(store.totes.last().id, focus)
     }
 
@@ -39,17 +39,26 @@ class ToteStoreTest {
     fun snapshotRestoresListMarksAndScreen() {
         var saved: Snapshot? = null
         val first = ToteStore { saved = it }
-        first.edit(first.totes.last().id, "e3397")
+        first.edit(first.totes.last().id, "E3397")
         first.edit(first.totes.last().id, "2965")
         first.toggleScanned(first.totes[1].id)
         first.showBarcodes()
 
         val second = ToteStore(saved)
-        assertEquals(listOf("e3397", "2965", ""), second.labels())
+        assertEquals(listOf("E3397", "2965", ""), second.labels())
         assertEquals(setOf(second.totes[1].id), second.scanned)
         assertEquals(Screen.Barcodes, second.screen)
         second.edit(second.totes.last().id, "e22560")
         assertEquals(second.totes.size, second.totes.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun lowercaseTypingAndPastingBecomesCapitals() {
+        val store = ToteStore()
+        store.edit(store.totes.last().id, "e3397")
+        assertEquals(listOf("E3397", ""), store.labels())
+        store.edit(store.totes.last().id, "e22560 tote-ab")
+        assertEquals(listOf("E3397", "E22560", "TOTE-AB", ""), store.labels())
     }
 
     @Test
@@ -68,9 +77,9 @@ class ToteStoreTest {
         store.edit(store.totes.last().id, "a")
         store.edit(store.totes.last().id, "b")
         store.edit(store.totes[0].id, "")
-        assertEquals(listOf("", "b", ""), store.labels())
+        assertEquals(listOf("", "B", ""), store.labels())
         store.pruneBlanks()
-        assertEquals(listOf("b", ""), store.labels())
+        assertEquals(listOf("B", ""), store.labels())
     }
 
     @Test

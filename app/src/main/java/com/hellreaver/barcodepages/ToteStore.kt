@@ -39,10 +39,12 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
 
     /**
      * Sets a row's text. Spaces, commas, semicolons and line breaks split the text into
-     * several totes, so a pasted list fills several rows at once.
+     * several totes, so a pasted list fills several rows at once. Letters are uppercased,
+     * because Code 128 keeps case and tote labels are printed in capitals.
      * Returns the id of the row that should take focus next, or null to leave focus alone.
      */
-    fun edit(id: Long, raw: String): Long? {
+    fun edit(id: Long, typed: String): Long? {
+        val raw = typed.uppercase()
         val index = totes.indexOfFirst { it.id == id }
         if (index < 0) return null
         val hasSeparator = SEPARATORS.containsMatchIn(raw)

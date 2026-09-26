@@ -6,14 +6,14 @@ Barcode-Pages is an Android app that redraws tote barcodes when a dispense or sc
 
 ## Using it
 
-1. **Enter missing totes.** Type a label (`e3397`, `2965`, `e22560`) exactly as printed. A new box opens as soon as you type in the last one. The keyboard's Next key jumps to the next box. Pasting a list separated by spaces, commas or line breaks fills one box per label. A label entered twice gets a yellow `Listed twice` tag.
+1. **Enter missing totes.** Type a label (`E3397`, `2965`, `E22560`). Letters switch to capitals as you type, and pasted labels are capitalized too. A new box opens as soon as you type in the last one. The keyboard's Next key jumps to the next box. Pasting a list separated by spaces, commas or line breaks fills one box per label. A label entered twice gets a yellow `Listed twice` tag.
 2. **Next.** Works from the first tote on. Each tote gets a card with the label on top and a full-width Code 128 barcode under it. While this screen is open the phone stays awake at full brightness, and the brightness goes back to normal when you leave it.
 3. **Mark scanned.** Optional. Tap it after the scanner takes a tote, and the header counts how many are done. Back or `‹ Totes` returns to the list to fix a label.
-4. **Share.** Shows a QR code and a Send link button for the releases page.
+4. **Share & update.** Shows a QR code and a Send link button for the releases page, plus the update check. On every launch the app asks GitHub for the newest release. If it's newer than the installed version, the `Share` button turns into a highlighted `Update` button, and `Update to 1.0.N` downloads the APK in Chrome to install over the app. The check gets a 404 from GitHub while the repository is private; the card then offers the releases page instead.
 
 Nothing is saved between launches. Swiping the app away or reopening it gives a blank list. If Android closes the app in the background while you're in another app, it comes back with the same list.
 
-Code 128 keeps upper and lower case, so `e3397` scans as `e3397`, not `E3397`. Each bar is drawn on whole screen pixels with a 10-module blank margin on both sides, the minimum the Code 128 spec asks for.
+Code 128 keeps case, so `e3397` and `E3397` are different barcodes. The app capitalizes every label so the barcode matches the printed tote label. Each bar is drawn on whole screen pixels with a 10-module blank margin on both sides, the minimum the Code 128 spec asks for.
 
 ## Installing
 

@@ -1,5 +1,8 @@
 package com.hellreaver.barcodepages
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -29,7 +32,8 @@ abstract class ScreensTestBase(private val device: String) {
     @Test
     fun enterTotesShowBarcodesAndShare() {
         val store = ToteStore()
-        compose.setContent { ToteApp(store, autoFocus = false) }
+        var update by mutableStateOf<UpdateState>(UpdateState.UpToDate)
+        compose.setContent { ToteApp(store, update, autoFocus = false) }
         shot("1-empty")
         compose.onNodeWithTag("next").assertIsNotEnabled()
 
@@ -56,6 +60,15 @@ abstract class ScreensTestBase(private val device: String) {
         compose.waitForIdle()
         assertEquals(Screen.Share, store.screen)
         shot("5-share")
+
+        // A newer release turns the Share chip into a highlighted Update chip.
+        update = UpdateState.Available(Release(99, "1.0.99", "https://example.invalid/Barcode-Pages.apk", RELEASES_URL))
+        store.show(Screen.Entry)
+        compose.waitForIdle()
+        compose.onNodeWithText("Update").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("Update to 1.0.99").assertExists()
+        shot("6-update")
     }
 }
 

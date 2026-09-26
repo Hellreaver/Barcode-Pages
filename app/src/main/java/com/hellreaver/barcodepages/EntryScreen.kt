@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun EntryScreen(store: ToteStore, autoFocus: Boolean = true) {
+fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: Boolean = true) {
     val requesters = remember { mutableMapOf<Long, FocusRequester>() }
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
@@ -84,7 +84,13 @@ fun EntryScreen(store: ToteStore, autoFocus: Boolean = true) {
         TopBar(
             eyebrow = "Missed dispense recovery",
             title = "Enter missing totes",
-            trailing = { HeaderChip("Share", onClick = { store.show(Screen.Share) }) },
+            trailing = {
+                HeaderChip(
+                    if (updateAvailable) "Update" else "Share",
+                    highlighted = updateAvailable,
+                    onClick = { store.show(Screen.Share) },
+                )
+            },
         )
 
         Column(
@@ -96,7 +102,7 @@ fun EntryScreen(store: ToteStore, autoFocus: Boolean = true) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                "Type each tote label exactly as printed. A new box opens as soon as you type, " +
+                "Type each tote label. Letters switch to capitals, a new box opens as soon as you type, " +
                     "and Next works as soon as there is one.",
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                 style = TextStyle(fontFamily = Lemon.body, fontSize = 14.sp, color = Lemon.muted),
@@ -207,7 +213,7 @@ private fun ToteRow(
             Box(Modifier.weight(1f).padding(vertical = 8.dp)) {
                 if (!filled) {
                     Text(
-                        if (isLast && number == 1) "Tote label, e.g. e3397" else "Next tote",
+                        if (isLast && number == 1) "Tote label, e.g. E3397" else "Next tote",
                         style = TextStyle(fontFamily = Lemon.body, fontSize = 20.sp, color = Lemon.muted.copy(alpha = 0.7f)),
                     )
                 }
@@ -223,7 +229,7 @@ private fun ToteRow(
                         color = Lemon.text,
                     ),
                     keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
+                        capitalization = KeyboardCapitalization.Characters,
                         autoCorrectEnabled = false,
                         keyboardType = KeyboardType.Ascii,
                         imeAction = if (isLast && !filled) ImeAction.Done else ImeAction.Next,
