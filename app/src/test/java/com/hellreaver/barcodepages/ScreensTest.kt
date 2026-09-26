@@ -46,16 +46,16 @@ abstract class ScreensTestBase(private val device: String) {
         // The Enter key stays "Next" before and after typing. If it flips, Android restarts the
         // keyboard connection and Samsung's keyboard drops the first letter.
         compose.onNodeWithTag("tote-1").assert(hasImeAction(ImeAction.Next))
-        compose.onNodeWithTag("tote-1").performTextInput("e3397")
+        compose.onNodeWithTag("tote-1").performTextInput("z13334")
         compose.onNodeWithTag("tote-1").assert(hasImeAction(ImeAction.Next))
         // The field holds exactly what the keyboard sent; only the display is capitalized.
         compose.onNodeWithTag("tote-1")
-            .assert(SemanticsMatcher.expectValue(SemanticsProperties.InputText, AnnotatedString("e3397")))
-            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("E3397")))
-        assertEquals("E3397", store.filled[0].label)
-        compose.onNodeWithTag("tote-2").performTextInput("2965")
-        compose.onNodeWithTag("tote-3").performTextInput("e22560")
-        compose.onNodeWithTag("tote-4").performTextInput("e22560")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.InputText, AnnotatedString("z13334")))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("Z13334")))
+        assertEquals("Z13334", store.filled[0].label)
+        compose.onNodeWithTag("tote-2").performTextInput("Z13027")
+        compose.onNodeWithTag("tote-3").performTextInput("y98760")
+        compose.onNodeWithTag("tote-4").performTextInput("y98760")
         compose.onNodeWithTag("tote-5").assertExists()
         compose.onNodeWithTag("next").assertIsEnabled()
         shot("2-entered")

@@ -106,8 +106,8 @@ fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: B
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                "Type each tote label. Letters switch to capitals, a new box opens as soon as you type, " +
-                    "and Next works as soon as there is one.",
+                "Type the code from the bottom-right corner of each tote label, like Z13334, " +
+                    "zeros included. A new box opens as you type, and Next works as soon as there is one.",
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                 style = TextStyle(fontFamily = Lemon.body, fontSize = 14.sp, color = Lemon.muted),
             )
@@ -217,7 +217,7 @@ private fun ToteRow(
             Box(Modifier.weight(1f).padding(vertical = 8.dp)) {
                 if (!filled) {
                     Text(
-                        if (isLast && number == 1) "Tote label, e.g. E3397" else "Next tote",
+                        if (isLast && number == 1) "Tote code, e.g. Z13334" else "Next tote",
                         style = TextStyle(fontFamily = Lemon.body, fontSize = 20.sp, color = Lemon.muted.copy(alpha = 0.7f)),
                     )
                 }

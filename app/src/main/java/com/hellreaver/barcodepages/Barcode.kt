@@ -5,7 +5,7 @@ import com.google.zxing.oned.Code128Writer
 
 /**
  * Code 128 encoding and pixel layout. Code 128 carries upper and lower case letters and
- * digits, so a label such as "e22560" scans back as exactly "e22560".
+ * digits, so a tote code such as "Z13334" scans back as exactly "Z13334".
  */
 object Barcode {
     /** Blank modules kept on each side. The Code 128 spec asks for at least 10. */
