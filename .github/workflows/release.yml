@@ -45,8 +45,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/release/app-release.apk Barcode-Pages.apk
-          gh release create "v1.0.${{ github.run_number }}" Barcode-Pages.apk \
+          # Version in the file name, so downloads on the phone are easy to tell apart.
+          VERSION="1.0.${{ github.run_number }}"
+          APK="Barcode-Pages-$VERSION.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          gh release create "v$VERSION" "$APK" \
             --target "${{ github.sha }}" \
-            --title "Barcode-Pages 1.0.${{ github.run_number }}" \
-            --notes "Download Barcode-Pages.apk below on the phone, open it, and allow the install. Each build installs over the last one."
+            --title "Barcode-Pages $VERSION" \
+            --notes "Download $APK below on the phone, open it, and allow the install. Each build installs over the last one."

@@ -2,7 +2,7 @@
 
 Barcode-Pages is an Android app that redraws tote barcodes when a dispense or scan-out fails after the customer has left. Type the tote labels in, tap Next, and scan the barcodes straight off the phone screen.
 
-**Download: [latest release](https://github.com/Hellreaver/Barcode-Pages/releases/latest)**, then tap `Barcode-Pages.apk` under Assets.
+**Download: [latest release](https://github.com/Hellreaver/Barcode-Pages/releases/latest)**, then tap `Barcode-Pages-<version>.apk` under Assets.
 
 ## Using it
 
@@ -19,7 +19,7 @@ Code 128 keeps case, so `e3397` and `E3397` are different barcodes. The app capi
 
 Built for the Pixel 8a and Pixel 8 Pro (Android 14 and later). It runs on any phone with Android 10 or newer.
 
-1. On the phone, open the latest release and download `Barcode-Pages.apk`.
+1. On the phone, open the latest release and download `Barcode-Pages-<version>.apk`.
 2. Open the download. Android asks you to allow installs from the browser or Files app the first time.
 3. Play Protect warns about apps that don't come from the Play Store. Tap Install anyway.
 
@@ -27,7 +27,7 @@ A work phone under company management may block installs from outside the Play S
 
 ## Builds
 
-Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as release `v1.0.<run number>`.
+Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as release `v1.0.<run number>` with the file `Barcode-Pages-1.0.<run number>.apk`.
 
 The signing key is not in this repository. The workflow reads it from two GitHub Actions secrets (Settings > Secrets and variables > Actions):
 

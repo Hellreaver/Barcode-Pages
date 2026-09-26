@@ -43,7 +43,7 @@ import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
-/** Newest GitHub release. GitHub Actions attaches Barcode-Pages.apk to each one. */
+/** Newest GitHub release. GitHub Actions attaches Barcode-Pages-<version>.apk to each one. */
 const val RELEASES_URL = "https://github.com/Hellreaver/Barcode-Pages/releases/latest"
 
 @Composable
@@ -102,7 +102,7 @@ fun ShareScreen(store: ToteStore, update: UpdateState = UpdateState.UpToDate, on
                 },
             )
             Text(
-                "On the release page, tap Barcode-Pages.apk under Assets, open the download, " +
+                "On the release page, tap the Barcode-Pages .apk file under Assets, open the download, " +
                     "and allow the install when Android asks. Play Protect warns about any app " +
                     "that isn't from the Play Store; tap Install anyway.",
                 modifier = Modifier

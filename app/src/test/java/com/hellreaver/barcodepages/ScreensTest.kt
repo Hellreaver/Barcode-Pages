@@ -62,7 +62,7 @@ abstract class ScreensTestBase(private val device: String) {
         shot("5-share")
 
         // A newer release turns the Share chip into a highlighted Update chip.
-        update = UpdateState.Available(Release(99, "1.0.99", "https://example.invalid/Barcode-Pages.apk", RELEASES_URL))
+        update = UpdateState.Available(Release(99, "1.0.99", "https://example.invalid/Barcode-Pages-1.0.99.apk", RELEASES_URL))
         store.show(Screen.Entry)
         compose.waitForIdle()
         compose.onNodeWithText("Update").performClick()

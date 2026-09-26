@@ -14,8 +14,8 @@ class UpdatesTest {
          "html_url": "https://github.com/Hellreaver/Barcode-Pages/releases/tag/v1.0.5",
          "assets": [
            {"name": "notes.txt", "browser_download_url": "https://example.invalid/notes.txt"},
-           {"name": "Barcode-Pages.apk",
-            "browser_download_url": "https://github.com/Hellreaver/Barcode-Pages/releases/download/v1.0.5/Barcode-Pages.apk"}
+           {"name": "Barcode-Pages-1.0.5.apk",
+            "browser_download_url": "https://github.com/Hellreaver/Barcode-Pages/releases/download/v1.0.5/Barcode-Pages-1.0.5.apk"}
          ]}
     """.trimIndent()
 
@@ -25,7 +25,7 @@ class UpdatesTest {
         assertEquals(5, release.versionCode)
         assertEquals("1.0.5", release.versionName)
         assertEquals(
-            "https://github.com/Hellreaver/Barcode-Pages/releases/download/v1.0.5/Barcode-Pages.apk",
+            "https://github.com/Hellreaver/Barcode-Pages/releases/download/v1.0.5/Barcode-Pages-1.0.5.apk",
             release.apkUrl,
         )
     }
