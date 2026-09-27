@@ -6,7 +6,10 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** A published GitHub release. The workflow tags each one v1.0.<run number>, which is also its versionCode. */
+/**
+ * A published GitHub release. Tags are v1.15, v1.16 ... (versionCode 115, 116 ...); the older
+ * v1.0.1 to v1.0.14 tags carry their versionCode as the last number.
+ */
 data class Release(val versionCode: Int, val versionName: String, val apkUrl: String?, val pageUrl: String)
 
 sealed interface UpdateState {
@@ -23,7 +26,7 @@ object Updates {
     fun parse(json: String): Release? {
         val o = JSONObject(json)
         val tag = o.optString("tag_name")
-        val code = Regex("(\\d+)$").find(tag)?.value?.toIntOrNull() ?: return null
+        val code = versionCodeOf(tag) ?: return null
         val assets = o.optJSONArray("assets")
         val apk = assets?.let { list ->
             (0 until list.length()).map { list.getJSONObject(it) }
@@ -31,6 +34,14 @@ object Updates {
                 ?.optString("browser_download_url")
         }
         return Release(code, tag.removePrefix("v"), apk, o.optString("html_url", RELEASES_URL))
+    }
+
+    /** "v1.15" is 115 and "v2.00" is 200; an old three-part tag such as "v1.0.14" is 14. */
+    fun versionCodeOf(tag: String): Int? {
+        Regex("^v?(\\d+)\\.(\\d{2})$").find(tag)?.let { m ->
+            return m.groupValues[1].toInt() * 100 + m.groupValues[2].toInt()
+        }
+        return Regex("^v?\\d+\\.\\d+\\.(\\d+)$").find(tag)?.groupValues?.get(1)?.toIntOrNull()
     }
 
     fun stateFor(release: Release, installedCode: Int): UpdateState =

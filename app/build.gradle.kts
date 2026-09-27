@@ -14,9 +14,11 @@ android {
         // Pixel 8a ships with Android 14, Pixel 8 Pro with Android 14; both update past 16.
         minSdk = 29
         targetSdk = 35
-        // GitHub Actions sets GITHUB_RUN_NUMBER so every CI build installs over the last one.
-        versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "1.0.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
+        // The release workflow picks the next version (1.15, 1.16 ... 1.99, 2.00) and passes it in.
+        // versionCode is the same number without the dot (1.15 is 115), so each release installs
+        // over the one before, including the older 1.0.x builds (codes 1 to 14).
+        versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
+        versionName = System.getenv("VERSION_NAME") ?: "dev"
     }
 
     signingConfigs {

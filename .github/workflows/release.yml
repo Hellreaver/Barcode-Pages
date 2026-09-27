@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# One release at a time, so two quick pushes can't both claim the same version number.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -38,9 +43,25 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Pick version
+        id: ver
+        run: |
+          # Versions go 1.15, 1.16 ... 1.19, 1.20 ... 1.99, 2.00: two digits after the dot, one step per
+          # published release, counted from the newest release tag, so a failed build leaves no gap.
+          # The number without the dot is the Android versionCode (1.15 is 115).
+          LAST="$(git tag -l 'v*' | sed -n 's/^v\([0-9][0-9]*\)\.\([0-9][0-9]\)$/\1 \2/p' \
+            | awk '{ print $1 * 100 + $2 }' | sort -n | tail -1)"
+          CODE=$(( ${LAST:-114} + 1 ))
+          NAME="$(printf '%d.%02d' $(( CODE / 100 )) $(( CODE % 100 )))"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "This build is $NAME (versionCode $CODE)"
+
       - name: Test and build
         env:
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
         run: ./gradlew testDebugUnitTest assembleRelease
 
       - name: Publish release
@@ -49,7 +70,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Version in the file name, so downloads on the phone are easy to tell apart.
-          VERSION="1.0.${{ github.run_number }}"
+          VERSION="${{ steps.ver.outputs.name }}"
           APK="Barcode-Pages-$VERSION.apk"
           cp app/build/outputs/apk/release/app-release.apk "$APK"
 
