@@ -27,7 +27,7 @@ A work phone under company management may block installs from outside the Play S
 
 ## Builds
 
-Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as the next release, with the file named after it (`Barcode-Pages-1.15.apk`). Versions have two digits after the dot and go up by one per release: 1.15, 1.16 … 1.19, 1.20 … 1.99, 2.00. The release notes list the subject line of every commit since the previous release.
+Every push to `main` runs `.github/workflows/release.yml`. It runs the tests, builds a signed release APK and publishes it as the next release, with the file named after it (`Barcode-Pages-1.15.apk`). Versions have two digits after the dot and go up by one per release: 1.15, 1.16 … 1.19, 1.20 … 1.99, 2.00. The release notes come from `CHANGELOG.md`: changes are written under its "Unreleased" heading, and each release renames that heading to its version and commits the file back.
 
 The signing key is not in this repository. The workflow reads it from two GitHub Actions secrets (Settings > Secrets and variables > Actions):
 

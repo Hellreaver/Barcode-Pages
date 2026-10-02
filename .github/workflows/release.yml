@@ -68,34 +68,65 @@ jobs:
         if: steps.key.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.ver.outputs.name }}
         run: |
           # Version in the file name, so downloads on the phone are easy to tell apart.
-          VERSION="${{ steps.ver.outputs.name }}"
           APK="Barcode-Pages-$VERSION.apk"
           cp app/build/outputs/apk/release/app-release.apk "$APK"
 
-          # Release notes: the subject line of every commit since the previous release.
-          PREV="$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2>/dev/null || true)"
-          {
-            echo "## What changed"
-            echo
-            if [ -n "$PREV" ]; then
-              git log --no-merges --format='- %s' "$PREV..HEAD"
-            else
-              git log --no-merges --format='- %s' HEAD
-            fi
-            echo
-            echo "## Install"
-            echo
-            echo "Download $APK below on the phone, open it, and allow the install. It installs over the previous version."
-            if [ -n "$PREV" ]; then
+          # Release notes come from CHANGELOG.md, the way delivery-tracker does it: the
+          # "Unreleased" section becomes this version.
+          if python3 .github/scripts/changelog.py stamp "$VERSION"; then
+            python3 .github/scripts/changelog.py notes "$VERSION" > notes.md
+          else
+            # Nothing written under "Unreleased": list the commit subjects since the last release.
+            echo "::warning::CHANGELOG.md has nothing under Unreleased; using commit subjects as the notes."
+            PREV="$(git describe --tags --abbrev=0 --match 'v*' HEAD^ 2>/dev/null || true)"
+            {
+              echo "## What changed"
               echo
-              echo "Previous release: $PREV"
-            fi
-          } > notes.md
+              git log --no-merges --format='- %s' ${PREV:+"$PREV..HEAD"}
+              echo
+              echo "## Install"
+              echo
+              echo "Download the .apk file below on the phone, open it, and allow the install. It installs over the previous version."
+            } > notes.md
+          fi
           cat notes.md
 
           gh release create "v$VERSION" "$APK" \
             --target "${{ github.sha }}" \
             --title "Barcode-Pages $VERSION" \
             --notes-file notes.md
+
+      - name: Save CHANGELOG.md
+        if: steps.key.outputs.ready == 'true'
+        env:
+          VERSION: ${{ steps.ver.outputs.name }}
+        run: |
+          # Commit the renamed heading back to main. A push made with the workflow's own token
+          # does not start another workflow run.
+          git diff --quiet -- CHANGELOG.md && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Changelog: $VERSION" -- CHANGELOG.md
+          git fetch -q origin main
+          if git rebase -q origin/main && git push -q origin HEAD:main; then
+            echo "CHANGELOG.md saved with its $VERSION heading"
+          else
+            git rebase --abort 2>/dev/null || true
+            echo "::warning::Couldn't save CHANGELOG.md. Rename its Unreleased heading to $VERSION by hand."
+          fi
+
+      - name: Sync release notes from CHANGELOG.md
+        if: steps.key.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Every version with a CHANGELOG.md section gets that section as its release notes, so
+          # corrections to an older entry reach its release page on the next build.
+          for v in $(python3 .github/scripts/changelog.py versions); do
+            gh release view "v$v" > /dev/null 2>&1 || continue
+            python3 .github/scripts/changelog.py notes "$v" > section.md
+            gh release edit "v$v" --notes-file section.md > /dev/null && echo "notes updated: v$v"
+          done
