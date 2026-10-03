@@ -3,6 +3,13 @@ name: Build and release APK
 on:
   push:
     branches: [main]
+    # Pushes that only touch these build and publish nothing. Run the workflow by hand
+    # (Actions tab, "Run workflow") to release anyway.
+    paths-ignore:
+      - status.json
+      - "**.md"
+      - ".github/**"
+      - "app/src/test/**"
   workflow_dispatch:
 
 permissions:

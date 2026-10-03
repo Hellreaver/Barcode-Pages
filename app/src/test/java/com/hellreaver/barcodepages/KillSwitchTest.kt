@@ -61,6 +61,14 @@ class KillSwitchTest {
     }
 
     @Test
+    fun capitalizedTrueAndFalseStillWork() {
+        // Typed in GitHub's editor the Python way; strict JSON only allows lowercase.
+        assertEquals(SwitchAnswer(false, "Cheatin"), KillSwitch.parse("{\n  \"enabled\": False,\n  \"message\": \"Cheatin\"\n}\n"))
+        assertEquals(SwitchAnswer(false, ""), KillSwitch.parse("""{"enabled": FALSE}"""))
+        assertEquals(SwitchAnswer(true, ""), KillSwitch.parse("""{"enabled": True}"""))
+    }
+
+    @Test
     fun theRepoFileParsesAsOn() {
         val text = java.io.File("../status.json").readText()
         assertEquals(SwitchAnswer(true, ""), KillSwitch.parse(text))
