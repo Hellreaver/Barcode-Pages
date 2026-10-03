@@ -1,5 +1,7 @@
 package com.hellreaver.barcodepages
 
+import android.app.Application
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,7 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
@@ -20,7 +22,7 @@ import kotlinx.coroutines.launch
  * Holds the list in memory. SavedStateHandle brings it back if Android kills the app while
  * it sits in the background; swiping the app away or relaunching it starts a blank list.
  */
-class ToteViewModel(handle: SavedStateHandle) : ViewModel() {
+class ToteViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     val store = ToteStore(
         restore = handle.get<ArrayList<String>>(LABELS)?.let { labels ->
             Snapshot(
@@ -39,8 +41,35 @@ class ToteViewModel(handle: SavedStateHandle) : ViewModel() {
     var update by mutableStateOf<UpdateState>(UpdateState.Checking)
         private set
 
+    private val switchStore = SwitchStore(app.getSharedPreferences("killswitch", Context.MODE_PRIVATE))
+    private var switchState = switchStore.load()
+    private var lastCheckIn = 0L
+
+    /** Worked out from what's stored, so a phone with no signal locks or opens without waiting. */
+    var lock by mutableStateOf(KillSwitch.lockFor(switchState, System.currentTimeMillis()))
+        private set
+    var checkingIn by mutableStateOf(false)
+        private set
+
     init {
         checkForUpdate()
+    }
+
+    /** Asks GitHub's status.json whether the app may run. Runs on every start, at most hourly. */
+    fun checkIn(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        lock = KillSwitch.lockFor(switchState, now)
+        if (checkingIn || (!force && now - lastCheckIn < CHECK_IN_EVERY_MS)) return
+        lastCheckIn = now
+        checkingIn = true
+        viewModelScope.launch {
+            val answer = KillSwitch.fetch()
+            val at = System.currentTimeMillis()
+            switchState = KillSwitch.afterCheck(switchState, answer, at)
+            if (answer != null) switchStore.save(switchState)
+            lock = KillSwitch.lockFor(switchState, at)
+            checkingIn = false
+        }
     }
 
     fun checkForUpdate() {
@@ -52,6 +81,7 @@ class ToteViewModel(handle: SavedStateHandle) : ViewModel() {
         const val LABELS = "labels"
         const val SCANNED = "scanned"
         const val SCREEN = "screen"
+        const val CHECK_IN_EVERY_MS = 60L * 60 * 1000
     }
 }
 
@@ -64,7 +94,21 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
-        setContent { ToteApp(model.store, model.update, model::checkForUpdate) }
+        setContent {
+            ToteApp(
+                store = model.store,
+                update = model.update,
+                onCheckUpdate = model::checkForUpdate,
+                lock = model.lock,
+                checkingIn = model.checkingIn,
+                onRetryLock = { model.checkIn(force = true) },
+            )
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        model.checkIn()
     }
 }
 
@@ -74,8 +118,15 @@ fun ToteApp(
     update: UpdateState = UpdateState.UpToDate,
     onCheckUpdate: () -> Unit = {},
     autoFocus: Boolean = true,
+    lock: Lock = Lock.Open,
+    checkingIn: Boolean = false,
+    onRetryLock: () -> Unit = {},
 ) {
     LemonTheme {
+        if (lock != Lock.Open) {
+            LockedScreen(lock, checkingIn, onRetryLock)
+            return@LemonTheme
+        }
         when (store.screen) {
             Screen.Entry -> EntryScreen(store, update is UpdateState.Available, autoFocus)
             Screen.Barcodes -> BarcodeScreen(store)

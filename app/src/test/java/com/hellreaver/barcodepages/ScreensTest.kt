@@ -111,6 +111,35 @@ abstract class ScreensTestBase(private val device: String) {
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(qualifiers = "w411dp-h914dp-420dpi")
+class LockedScreensTest {
+    @get:Rule
+    val compose = createComposeRule()
+
+    @Test
+    fun lockedScreensReplaceTheApp() {
+        val store = ToteStore()
+        var lock by mutableStateOf<Lock>(Lock.TurnedOff("Paused until Monday."))
+        compose.setContent { ToteApp(store, autoFocus = false, lock = lock) }
+        compose.onNodeWithTag("locked").assertExists()
+        compose.onNodeWithText("Paused until Monday.").assertExists()
+        compose.onNodeWithTag("next").assertDoesNotExist()
+        compose.onRoot().captureRoboImage("build/screenshots/locked-turned-off.png")
+
+        lock = Lock.NoContact
+        compose.waitForIdle()
+        compose.onNodeWithText("Can't reach GitHub").assertExists()
+        compose.onRoot().captureRoboImage("build/screenshots/locked-no-contact.png")
+
+        lock = Lock.Open
+        compose.waitForIdle()
+        compose.onNodeWithTag("locked").assertDoesNotExist()
+        compose.onNodeWithTag("next").assertExists()
+    }
+}
+
 @Config(qualifiers = "w411dp-h914dp-420dpi")
 class Pixel8aScreensTest : ScreensTestBase("pixel-8a")
 

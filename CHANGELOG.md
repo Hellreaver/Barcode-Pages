@@ -7,6 +7,8 @@ commits the file back. Editing an older section updates that release's notes on 
 
 ## Unreleased
 
+- Fixed bugs in some edge cases
+
 ## 1.17
 
 - Release pages now describe each change in plain words, and every earlier release got its
