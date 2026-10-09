@@ -94,6 +94,20 @@ abstract class ScreensTestBase(private val device: String) {
         assertEquals(1, store.scanned.size)
         shot("4-marked")
 
+        // Print: a name typed once covers the totes below it until the next name.
+        compose.onNodeWithText("Print").performClick()
+        compose.waitForIdle()
+        assertEquals(Screen.Print, store.screen)
+        shot("4a-print-empty")
+        compose.onNodeWithTag("name-1").assert(hasImeAction(ImeAction.Next))
+        compose.onNodeWithTag("name-1").performTextInput("PAT K.")
+        compose.onNodeWithTag("name-3").performTextInput("SAM R.")
+        compose.onNodeWithTag("name-1").assert(hasImeAction(ImeAction.Next))
+        compose.onNodeWithText("Same as above: PAT K.").assertExists()
+        assertEquals(listOf("PAT K.", "PAT K.", "SAM R.", "SAM R.", "SAM R."), store.filled.map { store.nameFor(it) })
+        shot("4b-print-named")
+        compose.onNodeWithTag("print").assertIsEnabled()
+
         store.show(Screen.Entry)
         compose.onNodeWithText("Share").performClick()
         compose.waitForIdle()

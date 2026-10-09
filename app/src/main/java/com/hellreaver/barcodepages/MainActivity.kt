@@ -29,12 +29,14 @@ class ToteViewModel(app: Application, handle: SavedStateHandle) : AndroidViewMod
                 labels = labels,
                 scanned = handle.get<BooleanArray>(SCANNED)?.toList().orEmpty(),
                 screen = runCatching { Screen.valueOf(handle.get<String>(SCREEN)!!) }.getOrDefault(Screen.Entry),
+                names = handle.get<ArrayList<String>>(NAMES).orEmpty(),
             )
         },
         onChange = { snap ->
             handle[LABELS] = ArrayList(snap.labels)
             handle[SCANNED] = snap.scanned.toBooleanArray()
             handle[SCREEN] = snap.screen.name
+            handle[NAMES] = ArrayList(snap.names)
         },
     )
 
@@ -81,6 +83,7 @@ class ToteViewModel(app: Application, handle: SavedStateHandle) : AndroidViewMod
         const val LABELS = "labels"
         const val SCANNED = "scanned"
         const val SCREEN = "screen"
+        const val NAMES = "names"
         const val CHECK_IN_EVERY_MS = 60L * 60 * 1000
     }
 }
@@ -131,6 +134,7 @@ fun ToteApp(
             Screen.Entry -> EntryScreen(store, update is UpdateState.Available, autoFocus)
             Screen.Barcodes -> BarcodeScreen(store)
             Screen.Share -> ShareScreen(store, update, onCheckUpdate)
+            Screen.Print -> PrintScreen(store)
         }
     }
 }

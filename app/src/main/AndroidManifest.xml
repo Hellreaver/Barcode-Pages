@@ -4,6 +4,10 @@
     <!-- Only used to ask GitHub whether a newer release exists. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Printing tote labels on a Bluetooth label printer. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -11,6 +15,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.BarcodePages">
+        <!-- Has Play services fetch the code scanner at install instead of on the first scan. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode_ui" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

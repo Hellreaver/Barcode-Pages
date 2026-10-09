@@ -7,6 +7,9 @@ commits the file back. Editing an older section updates that release's notes on 
 
 ## Unreleased
 
+- Print tote labels on a Bluetooth label printer: tap Print on the barcode screen, add a name
+  for each tote (a blank name uses the one above it), and print barcode or QR labels
+
 ## 1.18
 
 - Fixed bugs in some edge cases

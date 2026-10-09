@@ -36,6 +36,14 @@ android {
     }
 
     buildTypes {
+        // Test build for the label printing work: its own app id and name, so it installs next
+        // to the real Barcode-Pages instead of over it. Build: ./gradlew assemblePrintTest
+        create("printTest") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".print"
+            versionNameSuffix = "-print"
+            matchingFallbacks += listOf("debug")
+        }
         getByName("release") {
             isMinifyEnabled = false
             // A local build without the key falls back to this machine's debug key.
@@ -73,6 +81,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
     implementation("com.google.zxing:core:3.5.3")
+    // Reads the Wi-Fi sticker on a label printer; Play services supplies the camera screen.
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
     testImplementation(composeBom)
     testImplementation("junit:junit:4.13.2")

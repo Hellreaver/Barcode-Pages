@@ -29,10 +29,15 @@ fun String.labelCase(): String {
     })
 }
 
-enum class Screen { Entry, Barcodes, Share }
+enum class Screen { Entry, Barcodes, Share, Print }
 
 /** What survives Android killing the app in the background. A fresh launch starts empty. */
-data class Snapshot(val labels: List<String>, val scanned: List<Boolean>, val screen: Screen)
+data class Snapshot(
+    val labels: List<String>,
+    val scanned: List<Boolean>,
+    val screen: Screen,
+    val names: List<String> = emptyList(),
+)
 
 /**
  * The tote list, which totes are marked scanned, and which screen is open.
@@ -46,13 +51,18 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
     var screen by mutableStateOf(Screen.Entry)
         private set
 
+    /** Name typed for a tote on the print screen, by tote id. Blank or missing: see [nameFor]. */
+    var names by mutableStateOf(mapOf<Long, String>())
+        private set
+
     private var nextId = 1L
 
     init {
         if (restore != null) {
             totes = restore.labels.map { Tote(nextId++, it) }
             scanned = totes.filterIndexed { i, _ -> restore.scanned.getOrElse(i) { false } }.map { it.id }.toSet()
-            screen = if (restore.screen == Screen.Barcodes && filled.isEmpty()) Screen.Entry else restore.screen
+            names = totes.mapIndexedNotNull { i, t -> restore.names.getOrNull(i)?.takeIf { it.isNotEmpty() }?.let { t.id to it } }.toMap()
+            screen = if (restore.screen in setOf(Screen.Barcodes, Screen.Print) && filled.isEmpty()) Screen.Entry else restore.screen
         }
         ensureTrailingBlank()
     }
@@ -91,6 +101,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
     fun remove(id: Long) {
         totes = totes.filterNot { it.id == id }
         scanned = scanned - id
+        names = names - id
         ensureTrailingBlank()
         changed()
     }
@@ -108,6 +119,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
     fun clearAll() {
         totes = emptyList()
         scanned = emptySet()
+        names = emptyMap()
         screen = Screen.Entry
         ensureTrailingBlank()
         changed()
@@ -129,10 +141,31 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
         changed()
     }
 
+    /** Stores the name exactly as typed (never rewritten while typing; see Tote). */
+    fun setName(id: Long, text: String) {
+        names = if (text.isEmpty()) names - id else names + (id to text)
+        changed()
+    }
+
+    /** The name typed on this tote's own row, trimmed; blank when it was left empty. */
+    fun ownName(tote: Tote): String = names[tote.id]?.trim().orEmpty()
+
+    /**
+     * The name a tote's label gets: its own, or else the nearest one typed above it among the
+     * filled totes. So a customer with four totes needs the name typed once, on the first.
+     */
+    fun nameFor(tote: Tote): String {
+        val list = filled
+        val index = list.indexOfFirst { it.id == tote.id }
+        if (index < 0) return ownName(tote)
+        for (i in index downTo 0) ownName(list[i]).let { if (it.isNotEmpty()) return it }
+        return ""
+    }
+
     fun isDuplicate(tote: Tote): Boolean =
         tote.label.isNotBlank() && totes.count { it.label == tote.label } > 1
 
-    fun snapshot() = Snapshot(totes.map { it.text }, totes.map { it.id in scanned }, screen)
+    fun snapshot() = Snapshot(totes.map { it.text }, totes.map { it.id in scanned }, screen, totes.map { names[it.id].orEmpty() })
 
     private fun ensureTrailingBlank() {
         if (totes.lastOrNull()?.label?.isBlank() != true) {
