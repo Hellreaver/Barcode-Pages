@@ -90,11 +90,19 @@ fun EntryScreen(store: ToteStore, updateAvailable: Boolean = false, autoFocus: B
             eyebrow = "Missed dispense recovery",
             title = "Enter missing totes",
             trailing = {
-                HeaderChip(
-                    if (updateAvailable) "Update" else "Share",
-                    highlighted = updateAvailable,
-                    onClick = { store.show(Screen.Share) },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    HeaderChip("Print", onClick = {
+                        keyboard?.hide()
+                        focusManager.clearFocus()
+                        store.openPrint(Screen.Entry)
+                    })
+                    Spacer(Modifier.width(8.dp))
+                    HeaderChip(
+                        if (updateAvailable) "Update" else "Share",
+                        highlighted = updateAvailable,
+                        onClick = { store.show(Screen.Share) },
+                    )
+                }
             },
         )
 

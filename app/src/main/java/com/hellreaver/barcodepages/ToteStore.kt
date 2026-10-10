@@ -62,7 +62,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
             totes = restore.labels.map { Tote(nextId++, it) }
             scanned = totes.filterIndexed { i, _ -> restore.scanned.getOrElse(i) { false } }.map { it.id }.toSet()
             names = totes.mapIndexedNotNull { i, t -> restore.names.getOrNull(i)?.takeIf { it.isNotEmpty() }?.let { t.id to it } }.toMap()
-            screen = if (restore.screen in setOf(Screen.Barcodes, Screen.Print) && filled.isEmpty()) Screen.Entry else restore.screen
+            screen = if (restore.screen == Screen.Barcodes && filled.isEmpty()) Screen.Entry else restore.screen
         }
         ensureTrailingBlank()
     }
@@ -135,6 +135,18 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
         pruneBlanks()
         show(Screen.Barcodes)
     }
+
+    /** Where Back on the print screen goes: the screen it was opened from. */
+    var printReturn by mutableStateOf(Screen.Entry)
+        private set
+
+    /** Opens printing from the list or the barcodes; with no totes it offers a text label. */
+    fun openPrint(from: Screen) {
+        printReturn = from
+        show(Screen.Print)
+    }
+
+    fun closePrint() = show(printReturn)
 
     fun show(target: Screen) {
         screen = target

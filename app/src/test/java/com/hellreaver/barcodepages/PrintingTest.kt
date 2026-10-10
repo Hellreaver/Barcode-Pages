@@ -54,9 +54,28 @@ class PrintingTest {
     }
 
     @Test
-    fun printScreenWithNothingToPrintOpensTheList() {
+    fun printScreenStaysOpenWithNoTotesForATextLabel() {
         val back = ToteStore(Snapshot(labels = listOf(""), scanned = listOf(false), screen = Screen.Print))
-        assertEquals(Screen.Entry, back.screen)
+        assertEquals(Screen.Print, back.screen)
+    }
+
+    @Test
+    fun backFromPrintGoesWhereItCameFrom() {
+        val store = storeWith("Z1")
+        store.openPrint(Screen.Entry)
+        store.closePrint()
+        assertEquals(Screen.Entry, store.screen)
+        store.openPrint(Screen.Barcodes)
+        store.closePrint()
+        assertEquals(Screen.Barcodes, store.screen)
+    }
+
+    @Test
+    fun textLabelIsOnlyText() {
+        val zpl = LabelZpl.textLabel("WATER", LabelZpl.DEFAULT_LABEL, fakeText, copies = 2)
+        assertTrue("^BC" !in zpl)
+        assertEquals(1, Regex("\\^GFA,").findAll(zpl).count())
+        assertTrue(zpl.endsWith("^PQ2^XZ"))
     }
 
     @Test

@@ -146,6 +146,20 @@ object LabelZpl {
     private fun quantity(copies: Int) = if (copies > 1) "^PQ${copies.coerceAtMost(99)}" else ""
 
     /**
+     * A label with only [text] on it, as large as fits the whole area inside the printed bands
+     * and the peel strip, up to 3 lines: for marking a tote "WATER" and the like.
+     */
+    fun textLabel(text: String, size: LabelSize, render: TextRenderer, copies: Int = 1): String {
+        val plan = Plan(size, hasName = true)
+        val area = plan.codeTop + plan.codeHeight - plan.top
+        val sb = StringBuilder("^XA^LH0,0^LL${size.length}")
+        render.render(text.trim(), plan.usableWidth, area)?.let { g ->
+            sb.append(graphicAt((size.width - g.width) / 2, plan.top + (area - g.height) / 2, g))
+        }
+        return sb.append(quantity(copies)).append("^XZ").toString()
+    }
+
+    /**
      * One label: [name] (if any) across the top as large as fits, the code as a Code 128 barcode
      * as wide and tall as fits (or a QR code when [qr] is set), and the code in large print
      * under it. Text is drawn on the phone and sent as a picture, so its size is exact.

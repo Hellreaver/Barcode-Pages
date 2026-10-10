@@ -53,7 +53,7 @@ fun BarcodeScreen(store: ToteStore) {
             title = if (totes.size == 1) "1 tote" else "${totes.size} totes",
             progress = if (totes.isEmpty()) 0f else done.toFloat() / totes.size,
             leading = { HeaderChip("\u2039 Totes", onClick = { store.show(Screen.Entry) }) },
-            trailing = { HeaderChip("Print", onClick = { store.show(Screen.Print) }) },
+            trailing = { HeaderChip("Print", onClick = { store.openPrint(Screen.Barcodes) }) },
         )
         val nav = WindowInsets.navigationBars.asPaddingValues()
         LazyColumn(

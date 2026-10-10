@@ -42,6 +42,18 @@ abstract class ScreensTestBase(private val device: String) {
         var update by mutableStateOf<UpdateState>(UpdateState.UpToDate)
         compose.setContent { ToteApp(store, update, autoFocus = false) }
         shot("1-empty")
+
+        // With nothing entered, Print offers a text label only.
+        compose.onNodeWithText("Print").performClick()
+        compose.waitForIdle()
+        assertEquals(Screen.Print, store.screen)
+        compose.onNodeWithTag("print").assertIsNotEnabled()
+        compose.onNodeWithTag("label-text").performTextInput("WATER")
+        compose.onNodeWithTag("print").assertIsEnabled()
+        shot("0-text-label")
+        compose.onNodeWithText("\u2039 Totes").performClick()
+        compose.waitForIdle()
+        assertEquals(Screen.Entry, store.screen)
         compose.onNodeWithTag("example-label").assertExists()
         // The trip label example starts folded and opens on tap.
         compose.onNodeWithTag("trip-example").assertDoesNotExist()

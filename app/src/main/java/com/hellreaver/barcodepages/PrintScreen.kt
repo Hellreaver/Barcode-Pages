@@ -40,6 +40,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,8 +70,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Names for each tote, printer settings, and Print. A blank name uses the one above it, so a
- * customer's run of totes needs the name typed once, on the first.
+ * Two kinds of label. Tote labels: the entered totes, each with a name (a blank name uses the
+ * one above it, so a customer's run of totes needs it typed once). Text label: just text, as
+ * big as fits, for marking a tote "WATER". With no totes entered only the text label is offered.
  */
 @Composable
 fun PrintScreen(store: ToteStore) {
@@ -79,7 +81,10 @@ fun PrintScreen(store: ToteStore) {
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     val totes = store.filled
-    BackHandler { store.show(Screen.Barcodes) }
+    BackHandler { store.closePrint() }
+    var textMode by rememberSaveable { mutableStateOf(totes.isEmpty()) }
+    if (totes.isEmpty()) textMode = true
+    var labelText by rememberSaveable { mutableStateOf("") }
 
     var address by remember { mutableStateOf(prefs.getString("address", "").orEmpty()) }
     var useQr by remember { mutableStateOf(prefs.getBoolean("qr", false)) }
@@ -166,9 +171,14 @@ fun PrintScreen(store: ToteStore) {
 
     Column(Modifier.fillMaxSize().background(Lemon.bg)) {
         TopBar(
-            eyebrow = "Print tote labels",
-            title = if (totes.size == 1) "1 label" else "${totes.size} labels",
-            leading = { HeaderChip("‹ Barcodes", onClick = { store.show(Screen.Barcodes) }) },
+            eyebrow = if (textMode) "Print a text label" else "Print tote labels",
+            title = if (textMode) "Text label" else if (totes.size == 1) "1 tote label" else "${totes.size} tote labels",
+            leading = {
+                HeaderChip(
+                    if (store.printReturn == Screen.Barcodes) "‹ Barcodes" else "‹ Totes",
+                    onClick = { store.closePrint() },
+                )
+            },
         )
 
         Column(
@@ -179,8 +189,44 @@ fun PrintScreen(store: ToteStore) {
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Note("Name on each label (optional). Leave one blank to use the name above it, so a customer's totes need it once.")
-            totes.forEachIndexed { index, tote ->
+            if (totes.isNotEmpty()) {
+                Row {
+                    Toggle(if (totes.size == 1) "1 tote" else "${totes.size} totes", selected = !textMode, modifier = Modifier.weight(1f)) {
+                        textMode = false
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Toggle("Text label", selected = textMode, modifier = Modifier.weight(1f)) {
+                        focusManager.clearFocus()
+                        textMode = true
+                    }
+                }
+            }
+            if (textMode) {
+                Note(
+                    if (totes.isEmpty()) "No totes entered, so this prints a text label: words only, as big as fits. " +
+                        "Enter totes on the first screen to print tote labels."
+                    else "Words only, as big as fits, up to 3 lines. For marking a tote WATER and the like.",
+                )
+                Box(Modifier.fillMaxWidth().stripeCard(if (labelText.isNotBlank()) Lemon.accent else Lemon.line).padding(start = 17.dp, end = 10.dp, top = 14.dp, bottom = 14.dp)) {
+                    if (labelText.isEmpty()) Placeholder("Label text, e.g. WATER")
+                    BasicTextField(
+                        value = labelText,
+                        onValueChange = { labelText = it },
+                        cursorBrush = SolidColor(Lemon.accent),
+                        textStyle = TextStyle(fontFamily = Lemon.body, fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = Lemon.text),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Characters,
+                            autoCorrectEnabled = false,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                        modifier = Modifier.fillMaxWidth().testTag("label-text"),
+                    )
+                }
+            } else {
+                Note("Name on each label (optional). Leave one blank to use the name above it, so a customer's totes need it once.")
+            }
+            if (!textMode) totes.forEachIndexed { index, tote ->
                 key(tote.id) {
                     val requester = requesters.getOrPut(tote.id) { FocusRequester() }
                     NameRow(
@@ -226,8 +272,8 @@ fun PrintScreen(store: ToteStore) {
             }
             Note("The printer's BT Addr. Scan reads the Wi-Fi sticker on its back and adds one. A new printer asks to pair: confirm the code on both screens.")
 
-            SectionLabel("Code")
-            Row {
+            if (!textMode) SectionLabel("Code")
+            if (!textMode) Row {
                 Toggle("Barcode", selected = !useQr, modifier = Modifier.weight(1f)) {
                     useQr = false
                     prefs.edit().putBoolean("qr", false).apply()
@@ -238,7 +284,7 @@ fun PrintScreen(store: ToteStore) {
                     prefs.edit().putBoolean("qr", true).apply()
                 }
             }
-            if (useQr) {
+            if (useQr && !textMode) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LabelZpl.QrLevel.values().forEachIndexed { i, level ->
                         if (i > 0) Spacer(Modifier.width(6.dp))
@@ -299,14 +345,21 @@ fun PrintScreen(store: ToteStore) {
         }
 
         BottomBar(Modifier.windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))) {
-            val n = totes.size * copies
+            val n = (if (textMode) 1 else totes.size) * copies
             LemonButton(
                 text = if (busy) "Printing…" else if (n == 1) "Print 1 label" else "Print $n labels",
                 kind = ButtonKind.Primary,
-                enabled = !busy && totes.isNotEmpty(),
+                enabled = !busy && (if (textMode) labelText.isNotBlank() else totes.isNotEmpty()),
                 modifier = Modifier.weight(1f).testTag("print"),
                 onClick = {
                     focusManager.clearFocus()
+                    if (textMode) {
+                        val text = labelText
+                        sendToPrinter("Printing \"${text.trim()}\" x$copies", askSize = true) { size ->
+                            LabelZpl.textLabel(text, size, LabelText, copies).toByteArray(Charsets.US_ASCII)
+                        }
+                        return@LemonButton
+                    }
                     val qr = if (useQr) qrLevel else null
                     if (qr == null) totes.firstNotNullOfOrNull { LabelZpl.problem(it.label) }?.let {
                         say(it)
