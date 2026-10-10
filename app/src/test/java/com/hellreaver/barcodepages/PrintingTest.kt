@@ -120,6 +120,16 @@ class PrintingTest {
         assertEquals(25, LabelZpl.qrModules("TL0a1b-2", LabelZpl.QrLevel.H))
     }
 
+    @Test
+    fun qrFillsTheBandHeight() {
+        // COOLER 1 at Q: 21 modules. No name: band 408 dots; 408 / (21 + 2) = 17 dots per module
+        val band = LabelZpl.Plan(LabelZpl.DEFAULT_LABEL, hasName = false).barHeight
+        assertEquals(408, band)
+        assertEquals(17, LabelZpl.qrScale("COOLER 1", LabelZpl.QrLevel.Q, 576, band))
+        // and the full 4-module quiet zone still fits across: (21 + 8) * 17 = 493 <= 576
+        assertTrue((21 + 8) * 17 <= 576)
+    }
+
     /** Draws the QR picture with a white border and reads it back with ZXing. */
     private fun decodeQr(g: LabelZpl.Graphic, scale: Int): String {
         val border = 4 * scale

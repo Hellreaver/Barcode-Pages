@@ -97,9 +97,17 @@ object LabelZpl {
 
     fun qrModules(code: String, level: QrLevel): Int = Encoder.encode(code, level.zxing).matrix.width
 
-    /** Largest module size that fits the QR code and its 4-module quiet zone in a [box]-dot square. */
-    fun qrScale(code: String, level: QrLevel, box: Int): Int =
-        (box / (qrModules(code, level) + 8)).coerceAtLeast(1)
+    /**
+     * Largest module size for a QR code in a [width] x [height] band. Across, the full 4-module
+     * quiet zone each side fits within the label width (the side margins are blank). Up and down
+     * only 1 module each side is reserved inside the band; the margin above and the gap to the
+     * printed code add a little more. Camera scanners read that fine, and it took a "COOLER 1"
+     * code from 294 to 357 dots on the 576 x 603 label (2026-10-10, "could be bigger?").
+     */
+    fun qrScale(code: String, level: QrLevel, width: Int, height: Int): Int {
+        val m = qrModules(code, level)
+        return minOf(width / (m + 8), height / (m + 2)).coerceAtLeast(1)
+    }
 
     /** The QR code as a picture, [scale] dots per module. */
     fun qrGraphic(code: String, level: QrLevel, scale: Int): Graphic {
@@ -176,7 +184,7 @@ object LabelZpl {
             }
         }
         if (qr != null) {
-            val g = qrGraphic(code, qr, qrScale(code, qr, minOf(size.width, plan.barHeight)))
+            val g = qrGraphic(code, qr, qrScale(code, qr, size.width, plan.barHeight))
             sb.append(graphicAt((size.width - g.width) / 2, plan.barcodeTop + (plan.barHeight - g.height) / 2, g))
         } else {
             val w = barModule(code, size.width)
