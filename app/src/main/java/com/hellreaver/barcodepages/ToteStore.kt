@@ -11,7 +11,8 @@ import androidx.compose.runtime.setValue
  * which made Samsung's keyboard drop the first character.
  */
 data class Tote(val id: Long, val text: String) {
-    val label: String get() = text.labelCase()
+    /** Spaces at either end are dropped; a space inside stays ("DISPENSE 25" is one code). */
+    val label: String get() = text.labelCase().trim()
 }
 
 /**
@@ -71,7 +72,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
     val filled: List<Tote> get() = totes.filter { it.label.isNotBlank() }
 
     /**
-     * Sets a row's text. Spaces, commas, semicolons and line breaks split the text into
+     * Sets a row's text. Commas, semicolons and line breaks split the text into
      * several totes, so a pasted list fills several rows at once. The typed text is stored
      * as is; [Tote.label] capitalizes it, because Code 128 keeps case and tote labels are
      * printed in capitals.
@@ -188,6 +189,7 @@ class ToteStore(restore: Snapshot? = null, private val onChange: (Snapshot) -> U
     private fun changed() = onChange(snapshot())
 
     private companion object {
-        val SEPARATORS = Regex("[\\s,;]+")
+        // Not spaces: codes like "DISPENSE 25" carry one, and Code 128 and QR both hold it.
+        val SEPARATORS = Regex("[\\r\\n,;]+")
     }
 }

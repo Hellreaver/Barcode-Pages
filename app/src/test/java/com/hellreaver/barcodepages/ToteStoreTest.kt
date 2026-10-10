@@ -23,7 +23,7 @@ class ToteStoreTest {
     @Test
     fun pastedListSplitsIntoRowsAndFocusMovesPastIt() {
         val store = ToteStore()
-        val focus = store.edit(store.totes.last().id, "Z13334 Z13027,Y98760\n")
+        val focus = store.edit(store.totes.last().id, "Z13334\nZ13027,Y98760\n")
         assertEquals(listOf("Z13334", "Z13027", "Y98760", ""), store.labels())
         assertEquals(store.totes.last().id, focus)
     }
@@ -57,7 +57,7 @@ class ToteStoreTest {
         val store = ToteStore()
         store.edit(store.totes.last().id, "z13334")
         assertEquals(listOf("Z13334", ""), store.labels())
-        store.edit(store.totes.last().id, "y98760 tote-ab")
+        store.edit(store.totes.last().id, "y98760\ntote-ab")
         assertEquals(listOf("Z13334", "Y98760", "TOTE-AB", ""), store.labels())
     }
 
@@ -135,8 +135,19 @@ class ToteStoreTest {
     @Test
     fun duplicatesAreFlagged() {
         val store = ToteStore()
-        store.edit(store.totes.last().id, "z13334 z13334 Z13027")
+        store.edit(store.totes.last().id, "z13334, z13334, Z13027")
         assertTrue(store.isDuplicate(store.totes[0]))
         assertFalse(store.isDuplicate(store.totes[2]))
+    }
+
+    @Test
+    fun aSpaceStaysInsideTheCode() {
+        val store = ToteStore()
+        store.edit(store.totes.last().id, "dispense 25")
+        assertEquals(listOf("DISPENSE 25", ""), store.labels())
+        // the field keeps what was typed; the label drops end spaces only
+        store.edit(store.totes[0].id, " put 1 ")
+        assertEquals("PUT 1", store.filled[0].label)
+        assertEquals(" put 1 ", store.totes[0].text)
     }
 }

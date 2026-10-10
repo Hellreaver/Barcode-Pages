@@ -10,6 +10,7 @@ commits the file back. Editing an older section updates that release's notes on 
 - Print tote labels on a Bluetooth label printer: tap Print on the barcode screen, add a name
   for each tote (a blank name uses the one above it), and print barcode or QR labels
 - Print a label with just text, like WATER: tap Print on the first screen
+- A space now stays inside a code (DISPENSE 25 is one label); paste lists with commas or line breaks
 
 ## 1.18
 
